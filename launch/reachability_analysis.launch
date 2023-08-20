@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+
+<launch>
+    <!-- visualization config -->
+    <arg name="rviz"               default="true" />
+    <arg name="description_name"   default="robot_description"/>
+
+    <!-- The task file for the mpc. -->
+    <arg name="taskFile"          default="$(find ocs2_quadruped_ros)/config/mpc/task_go1.info"/>
+    
+    <!-- The reference related config file of the robot -->
+    <arg name="referenceFile"     default="$(find ocs2_quadruped_ros)/config/command/reference_go1.info"/>
+    
+    <!-- The URDF model of the robot -->
+    <arg name="urdfFile"          default="$(find go1_description)/urdf/go1_withgun_v2.urdf"/>
+    
+    <!-- The file defining gait definition -->
+    <arg name="gaitCommandFile"   default="$(find ocs2_quadruped_ros)/config/command/gait.info"/>
+    
+    <!-- The rebar layout file -->
+    <!-- <arg name="rebarFile"     default="$(find ocs2_quadruped_ros)/config/rebar/one_rebar.json"/> -->
+
+    <arg name="rebarFile"     default="$(find ocs2_quadruped_ros)/config/rebar/rebar_setup.json" />
+
+    <!-- rviz -->
+    <group if="$(arg rviz)">
+      <param name="$(arg description_name)" textfile="$(arg urdfFile)"/>
+      <arg name="rvizconfig" default="$(find reachability_analysis)/rviz/reachability.rviz" />
+      <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" />
+    </group>
+
+    <!-- make the files into global parameters -->
+    <param name="taskFile"          value="$(arg taskFile)" />
+    <param name="referenceFile"     value="$(arg referenceFile)" />
+    <param name="urdfFile"          value="$(arg urdfFile)" />
+    <param name="gaitCommandFile"   value="$(arg gaitCommandFile)" />
+    <param name="rebarFile"         value="$(arg rebarFile)" />
+    <param name="rviz"              value="$(arg rviz)" />
+
+    <param name="a"                 value="1.0" />
+
+    <node pkg="reachability_analysis" type="legged_robot_reachability_analysis" name="legged_robot_reachability_analysis" 
+                output="screen" launch-prefix="gnome-terminal --" />
+
+</launch>
