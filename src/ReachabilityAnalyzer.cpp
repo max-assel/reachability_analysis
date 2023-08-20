@@ -19,12 +19,11 @@ void enforceJointLimits(const pinocchio::Model & model, Eigen::VectorXd & q, Eig
 
     for (int i = 0; i < model.nq; i++) // 18
     {
-        if (i >= 0 && i < 3)
+        if (i >= 0 && i < 3) // robot torso position
         {
-            // robot torso position
             q[0] = torso_pose[0];
             q[1] = torso_pose[1];
-            // q[2] = torso_pose[2];
+            q[2] = torso_pose[2];
             /*
             if (i == 2)
             {
@@ -36,14 +35,13 @@ void enforceJointLimits(const pinocchio::Model & model, Eigen::VectorXd & q, Eig
             */
             
             
-        } else if (i >= 3 && i < 6)
+        } else if (i >= 3 && i < 6) // robot torso orientation
         {
-            // robot torso orientation
-            q[3] = 0.0; q[4] = 0.0; q[5] = 0.0;
-        } else
+            q[3] = 0.0; 
+            q[4] = 0.0; 
+            q[5] = 0.0;
+        } else // joint angles
         {
-            // joint angles
-
             // unwind
             while (q[i] < -2.0 * M_PI) 
                 q[i] += 2.0 * M_PI;
@@ -57,68 +55,145 @@ void enforceJointLimits(const pinocchio::Model & model, Eigen::VectorXd & q, Eig
     }
 }
 
-ReachabilityAnalyzer::ReachabilityAnalyzer(ros::NodeHandle& nodeHandle)
-{
-    projectionPublisher = nodeHandle.advertise<visualization_msgs::MarkerArray>("/projections", 1);
-    superquadricPublisher = nodeHandle.advertise<visualization_msgs::MarkerArray>("/superquadrics", 1);
-    marker_counter = 0;
-    feetColorMap_ = {Color::blue, Color::orange, Color::yellow, Color::purple};  // Colors for markers per feet
 
-}
-
-void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interface, 
-                                                    std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-                                                    PinocchioEndEffectorKinematics & endEffectorKinematics)
+bool ReachabilityAnalyzer::IKProjection(Eigen::VectorXd & new_q,
+                    const Eigen::VectorXd & v,
+                    Eigen::Vector3d torso_pose,
+                    LeggedRobotInterface & interface,
+                    std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer)
 {
+    // std::cout << "[IKProjection]" << std::endl;
+    const auto& model = interface.getPinocchioInterface().getModel();
+    auto& data = interface.getPinocchioInterface().getData();
+
+   
     Eigen::MatrixXd J_FL, J_FR, J_BL, J_BR;
     Eigen::MatrixXd J_total;
 
     J_FL = pinocchio::Data::Matrix6x::Zero(6, 18);
-    // std::cout << "after J_FL" << std::endl;
     J_FR = pinocchio::Data::Matrix6x::Zero(6, 18);
-    // std::cout << "after J_FR" << std::endl;
     J_BL = pinocchio::Data::Matrix6x::Zero(6, 18);
-    // std::cout << "after J_BL" << std::endl;
     J_BR = pinocchio::Data::Matrix6x::Zero(6, 18);
-    // std::cout << "after J_BR" << std::endl;
-
     J_total = Eigen::MatrixXd::Zero(12, 18); 
-
-    int num_projections = 1500;
-    const auto& model = interface.getPinocchioInterface().getModel();
-    auto& data = interface.getPinocchioInterface().getData();
-    vector_array_t state_trajectory;
-
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(model.nq);
-    Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
-
-    pinocchio::forwardKinematics(model, data, q, v);
-    pinocchio::computeJointJacobians(model, data);
-    pinocchio::updateFramePlacements(model, data);
 
     pinocchio::FrameIndex FL_foot_frame_id = model.getBodyId("FL_foot");
     pinocchio::FrameIndex FR_foot_frame_id = model.getBodyId("FR_foot");
     pinocchio::FrameIndex BL_foot_frame_id = model.getBodyId("RL_foot");
     pinocchio::FrameIndex BR_foot_frame_id = model.getBodyId("RR_foot");     
 
-    Eigen::Vector3d FL_target_position = data.oMf[FL_foot_frame_id].translation();
-    FL_target_position[2] = 0.0;
-    Eigen::Vector3d FR_target_position = data.oMf[FR_foot_frame_id].translation();
-    FR_target_position[2] = 0.0;
-    Eigen::Vector3d BL_target_position = data.oMf[BL_foot_frame_id].translation();
-    BL_target_position[2] = 0.0;
-    Eigen::Vector3d BR_target_position = data.oMf[BR_foot_frame_id].translation();
-    BR_target_position[2] = 0.0;
-
+    bool foundTransition = false;
     double epsilon = 0.01;
-    int num_sample_iterations = 25;
-    int num_projection_iterations = 25;
+    int num_projection_iterations = 100;
 
-    Eigen::VectorXd f_x(12); // 3 Dof per foot, constraining position
-    f_x << (data.oMf[FL_foot_frame_id].translation() - FL_target_position), 
-           (data.oMf[FR_foot_frame_id].translation() - FR_target_position),
-           (data.oMf[BL_foot_frame_id].translation() - BL_target_position), 
-           (data.oMf[BR_foot_frame_id].translation() - BR_target_position);
+    // std::cout << "  beginning q: " << new_q.transpose() << std::endl;
+
+    // project into contact
+    for (int projection_iteration = 0; projection_iteration < num_projection_iterations; projection_iteration++)
+    {
+        // std::cout << "  projection " << projection_iteration << std::endl;
+        // publishProjection(interface, new_q, leggedRobotVisualizer);
+
+        // update model based on current configuration
+        pinocchio::forwardKinematics(model, data, new_q, v);
+        pinocchio::computeJointJacobians(model, data);        
+        pinocchio::updateFramePlacements(model, data);
+
+        // calculate target footholds
+        Eigen::Vector3d FL_target_position = data.oMf[FL_foot_frame_id].translation();
+        FL_target_position[2] = 0.0;
+        Eigen::Vector3d FR_target_position = data.oMf[FR_foot_frame_id].translation();
+        FR_target_position[2] = 0.0;
+        Eigen::Vector3d BL_target_position = data.oMf[BL_foot_frame_id].translation();
+        BL_target_position[2] = 0.0;
+        Eigen::Vector3d BR_target_position = data.oMf[BR_foot_frame_id].translation();
+        BR_target_position[2] = 0.0;
+
+        // std::cout << "      FL_target_position: " << FL_target_position.transpose() << std::endl;
+        // std::cout << "      FR_target_position: " << FR_target_position.transpose() << std::endl;
+        // std::cout << "      BL_target_position: " << BL_target_position.transpose() << std::endl;
+        // std::cout << "      BR_target_position: " << BR_target_position.transpose() << std::endl;
+
+        Eigen::VectorXd f_x(12); // 3 Dof per foot, constraining position
+        f_x << (data.oMf[FL_foot_frame_id].translation() - FL_target_position), 
+               (data.oMf[FR_foot_frame_id].translation() - FR_target_position),
+               (data.oMf[BL_foot_frame_id].translation() - BL_target_position), 
+               (data.oMf[BR_foot_frame_id].translation() - BR_target_position);
+        // std::cout << "      error: " << f_x.norm() << std::endl;
+
+        foundTransition = (f_x.norm() < epsilon);
+        if (foundTransition)
+            break;
+
+        // calculate Jacobians
+        J_FL.setZero(); J_FR.setZero(); J_BL.setZero(); J_BR.setZero();
+
+        pinocchio::getFrameJacobian(model, data, FL_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_FL); 
+        pinocchio::getFrameJacobian(model, data, FR_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_FR);
+        pinocchio::getFrameJacobian(model, data, BL_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_BL);
+        pinocchio::getFrameJacobian(model, data, BR_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_BR);
+
+        // std::cout << "J_FL: " << J_FL << std::endl;
+        // std::cout << "J_FR: " << J_FR << std::endl;
+        // std::cout << "J_BL: " << J_BL << std::endl;
+        // std::cout << "J_BR: " << J_BR << std::endl;
+
+        J_total.setZero();
+        J_total.block(0, 0, 3, model.nq) = J_FL.template topRows<3>(); // extract position rows of jacobian
+        J_total.block(3, 0, 3, model.nq) = J_FR.template topRows<3>(); // extract position rows of jacobian
+        J_total.block(6, 0, 3, model.nq) = J_BL.template topRows<3>(); // extract position rows of jacobian
+        J_total.block(9, 0, 3, model.nq) = J_BR.template topRows<3>(); // extract position rows of jacobian
+
+        // std::cout << "J_total size: " << J_total.rows() << ", " << J_total.cols() << std::endl;
+
+        // std::cout << "J_total" << J_total << std::endl;
+
+        Eigen::MatrixXd pinv = J_total.completeOrthogonalDecomposition().pseudoInverse();
+
+        // std::cout << "pinv size: " << pinv.rows() << ", " << pinv.cols() << std::endl;
+        // std::cout << "pinv: " << pinv << std::endl;
+
+        // pinv size: 18 x 12
+        double alpha = 1.0; // + 1.0 * (1.0 - double(projection_iteration) / num_projection_iterations); // learning rate
+        Eigen::VectorXd temp_q = new_q - alpha * pinv * f_x;
+        new_q = temp_q;
+        // std::cout << "  projected q:     " << temp_q.transpose() << std::endl;
+
+        // NEED TO ENFORCE JOINT LIMITS
+        enforceJointLimits(model, new_q, torso_pose);
+        // std::cout << "  joint limited q: " << temp_q.transpose() << std::endl;
+
+
+        projection_iteration++;
+
+        // std::cout << "  projection_iteration: " << projection_iteration << std::endl;
+        // std::cout << "      FL_foot position: " << data.oMf[FL_foot_frame_id].translation().transpose() << std::endl;
+        // std::cout << "      FR_foot position: " << data.oMf[FR_foot_frame_id].translation().transpose() << std::endl;
+        // std::cout << "      BL_foot position: " << data.oMf[BL_foot_frame_id].translation().transpose() << std::endl;
+        // std::cout << "      BR_foot position: " << data.oMf[BR_foot_frame_id].translation().transpose() << std::endl;
+        // std::cout << "      error: " << x.norm() << std::endl;
+    }  
+
+    return foundTransition;
+}
+
+ReachabilityAnalyzer::ReachabilityAnalyzer(ros::NodeHandle& nodeHandle)
+{
+    projectionPublisher = nodeHandle.advertise<visualization_msgs::MarkerArray>("/projections", 1);
+    superquadricPublisher = nodeHandle.advertise<visualization_msgs::MarkerArray>("/superquadrics", 1);
+    marker_counter = 0;
+    feetColorMap_ = {Color::blue, Color::orange, Color::yellow, Color::purple};  // Colors for markers per feet
+}
+
+void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interface, 
+                                                    std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
+                                                    PinocchioEndEffectorKinematics & endEffectorKinematics)
+{
+    int num_projections = 2500;
+
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(18);
+    Eigen::VectorXd v = Eigen::VectorXd::Zero(18);
+
+    int num_sample_iterations = 25;
 
     Eigen::Vector3d torso_pose(0.0, 0.0, 0.30);
     Eigen::VectorXd defaultState = interface.getInitialState();
@@ -126,122 +201,30 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
     std::default_random_engine generator;
     std::uniform_real_distribution<double> joint_distribution(-M_PI/8, M_PI/8);
     
-    bool foundTransition = (f_x.norm() < epsilon);
+    bool foundTransition = false;
 
-    int projection_iteration = 0;        
     for (int i = 0; i < num_projections; i++)
     {
         // std::cout << "projection " << i << std::endl;
-        projection_iteration = 0;
 
         Eigen::VectorXd new_q = q;
-        Eigen::VectorXd temp_q = q;
 
-        new_q[0] = torso_pose[0]; new_q[1] = torso_pose[1]; // new_q[2] = torso_pose[2];
+        new_q[0] = torso_pose[0]; new_q[1] = torso_pose[1]; new_q[2] = torso_pose[2];
         new_q[3] = 0.0; new_q[4] = 0.0; new_q[5] = 0.0;
 
         new_q.block(6, 0, 12, 1) = defaultState.block(12, 0, 12, 1);
 
         // randomly sample leg joints
-        // THIS IS NOT RANDOM
 
         for (int j = 0; j < 12; j++)
-        {
-            double random_comp = joint_distribution(generator); 
-            // std::cout << "  random_comp " << j << ": " << random_comp << std::endl;
-            new_q[6 + j] += random_comp;
-        }
+            new_q[6 + j] += joint_distribution(generator);
 
-        pinocchio::forwardKinematics(model, data, new_q, v);
-        pinocchio::computeJointJacobians(model, data);
-        pinocchio::updateFramePlacements(model, data);
-
-        foundTransition = false;
-
-        // project into contact
-        while (!foundTransition & projection_iteration < num_projection_iterations)
-        {
-            // publishProjection(interface, new_q, leggedRobotVisualizer);
-
-            J_FL.setZero(); J_FR.setZero(); J_BL.setZero(); J_BR.setZero();
-
-            pinocchio::getFrameJacobian(model, data, FL_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_FL); 
-            pinocchio::getFrameJacobian(model, data, FR_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_FR);
-            pinocchio::getFrameJacobian(model, data, BL_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_BL);
-            pinocchio::getFrameJacobian(model, data, BR_foot_frame_id, pinocchio::LOCAL_WORLD_ALIGNED, J_BR);
-
-            // std::cout << "J_FL: " << J_FL << std::endl;
-            // std::cout << "J_FR: " << J_FR << std::endl;
-            // std::cout << "J_BL: " << J_BL << std::endl;
-            // std::cout << "J_BR: " << J_BR << std::endl;
-
-            J_total.setZero();
-            J_total.block(0, 0, 3, model.nq) = J_FL.template topRows<3>(); // extract position rows of jacobian
-            J_total.block(3, 0, 3, model.nq) = J_FR.template topRows<3>(); // extract position rows of jacobian
-            J_total.block(6, 0, 3, model.nq) = J_BL.template topRows<3>(); // extract position rows of jacobian
-            J_total.block(9, 0, 3, model.nq) = J_BR.template topRows<3>(); // extract position rows of jacobian
-
-            // std::cout << "J_total size: " << J_total.rows() << ", " << J_total.cols() << std::endl;
-
-            // std::cout << "J_total" << J_total << std::endl;
-
-            Eigen::MatrixXd pinv = J_total.completeOrthogonalDecomposition().pseudoInverse();
-
-            // std::cout << "pinv size: " << pinv.rows() << ", " << pinv.cols() << std::endl;
-            // std::cout << "pinv: " << pinv << std::endl;
-
-            // pinv size: 18 x 12
-            temp_q = new_q - pinv * f_x;
-            // std::cout << "  projected q:     " << temp_q.transpose() << std::endl;
-
-            // NEED TO ENFORCE JOINT LIMITS
-            enforceJointLimits(model, temp_q, torso_pose);
-            // std::cout << "  joint limited q: " << temp_q.transpose() << std::endl;
-            new_q = temp_q;
-
-            pinocchio::forwardKinematics(model, data, new_q, v);
-            pinocchio::computeJointJacobians(model, data);        
-            pinocchio::updateFramePlacements(model, data);
-
-            Eigen::Vector3d FL_target_position = data.oMf[FL_foot_frame_id].translation();
-            FL_target_position[2] = 0.0;
-            Eigen::Vector3d FR_target_position = data.oMf[FR_foot_frame_id].translation();
-            FR_target_position[2] = 0.0;
-            Eigen::Vector3d BL_target_position = data.oMf[BL_foot_frame_id].translation();
-            BL_target_position[2] = 0.0;
-            Eigen::Vector3d BR_target_position = data.oMf[BR_foot_frame_id].translation();
-            BR_target_position[2] = 0.0;
-
-            f_x << (data.oMf[FL_foot_frame_id].translation() - FL_target_position), 
-                   (data.oMf[FR_foot_frame_id].translation() - FR_target_position),
-                   (data.oMf[BL_foot_frame_id].translation() - BL_target_position), 
-                   (data.oMf[BR_foot_frame_id].translation() - BR_target_position);
-
-            // std::cout << "  error: " << f_x.norm() << std::endl;
-
-            projection_iteration++;
-
-            foundTransition = (f_x.norm() < epsilon);
-
-            // std::cout << "  projection_iteration: " << projection_iteration << std::endl;
-            // std::cout << "      FL_foot position: " << data.oMf[FL_foot_frame_id].translation().transpose() << std::endl;
-            // std::cout << "      FR_foot position: " << data.oMf[FR_foot_frame_id].translation().transpose() << std::endl;
-            // std::cout << "      BL_foot position: " << data.oMf[BL_foot_frame_id].translation().transpose() << std::endl;
-            // std::cout << "      BR_foot position: " << data.oMf[BR_foot_frame_id].translation().transpose() << std::endl;
-            // std::cout << "      error: " << x.norm() << std::endl;
-
-        }
+        foundTransition = IKProjection(new_q, v, torso_pose, interface, leggedRobotVisualizer);
 
         if (foundTransition)
             publishContact(new_q, endEffectorKinematics);       
         visualizeSuperquadric(leggedRobotVisualizer);
     }
-}
-
-void ReachabilityAnalyzer::IKProjection(LeggedRobotInterface & interface)
-{
-    std::cout << "[IKProjection]" << std::endl;
-    return;
 }
 
 void ReachabilityAnalyzer::publishProjection(LeggedRobotInterface & interface, Eigen::VectorXd & q, 
@@ -272,7 +255,7 @@ void ReachabilityAnalyzer::publishContact(Eigen::VectorXd & q,
 
     for (int leg_idx = 0; leg_idx < 4; leg_idx++)
     {
-        std::cout << "  footPosition: " << feetPositions[leg_idx] << std::endl;
+        // std::cout << "  footPosition: " << feetPositions[leg_idx] << std::endl;
 
         visualization_msgs::Marker marker;
         marker.header.frame_id = "odom";
@@ -325,7 +308,7 @@ void ReachabilityAnalyzer::visualizeSuperquadric(std::shared_ptr<LeggedRobotVisu
     visualization_msgs::MarkerArray markerArray;
 
     // order: FL, FR, BL, BR
-    std::vector<double> x0s = {0.15, 0.15, -0.25, -0.25};
+    std::vector<double> x0s = {0.175, 0.175, -0.25, -0.25};
     std::vector<double> y0s = {0.20, -0.20, 0.20, -0.20};
 
     double a = 0.5;

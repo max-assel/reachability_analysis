@@ -23,7 +23,11 @@ public:
 
 
 private:
-    void IKProjection(LeggedRobotInterface & interface);
+    bool IKProjection(Eigen::VectorXd & new_q,
+                        const Eigen::VectorXd & v,
+                        Eigen::Vector3d torso_pose,
+                        LeggedRobotInterface & interface,
+                        std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
     void publishProjection(LeggedRobotInterface & interface, Eigen::VectorXd & x, std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
     void publishContact(Eigen::VectorXd & q, 
                         PinocchioEndEffectorKinematics & endEffectorKinematics);
