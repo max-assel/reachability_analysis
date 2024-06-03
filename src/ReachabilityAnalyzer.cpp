@@ -60,7 +60,8 @@ bool ReachabilityAnalyzer::IKProjection(Eigen::VectorXd & new_q,
                     const Eigen::VectorXd & v,
                     Eigen::Vector3d torso_pose,
                     LeggedRobotInterface & interface,
-                    std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer)
+                    std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
+                    bool final)
 {
     // std::cout << "[IKProjection]" << std::endl;
     const auto& model = interface.getPinocchioInterface().getModel();
@@ -82,7 +83,7 @@ bool ReachabilityAnalyzer::IKProjection(Eigen::VectorXd & new_q,
     pinocchio::FrameIndex BR_foot_frame_id = model.getBodyId("RR_foot");     
 
     bool foundTransition = false;
-    double epsilon = 0.01;
+    double epsilon = 0.005;
     int num_projection_iterations = 100;
 
     // std::cout << "  beginning q: " << new_q.transpose() << std::endl;
@@ -99,14 +100,25 @@ bool ReachabilityAnalyzer::IKProjection(Eigen::VectorXd & new_q,
         pinocchio::updateFramePlacements(model, data);
 
         // calculate target footholds
-        Eigen::Vector3d FL_target_position = data.oMf[FL_foot_frame_id].translation();
-        FL_target_position[2] = 0.0;
-        Eigen::Vector3d FR_target_position = data.oMf[FR_foot_frame_id].translation();
-        FR_target_position[2] = 0.0;
-        Eigen::Vector3d BL_target_position = data.oMf[BL_foot_frame_id].translation();
-        BL_target_position[2] = 0.0;
-        Eigen::Vector3d BR_target_position = data.oMf[BR_foot_frame_id].translation();
-        BR_target_position[2] = 0.0;
+        Eigen::Vector3d FL_target_position, FR_target_position, BL_target_position, BR_target_position;
+        if (final)
+        {
+            FL_target_position = Eigen::Vector3d(0.175, 0.20, 0.0);
+            FR_target_position = Eigen::Vector3d(0.175, -0.20, 0.0);
+            BL_target_position = Eigen::Vector3d(-0.25, 0.20, 0.0);
+            BR_target_position = Eigen::Vector3d(-0.25, -0.20, 0.0);            
+        } else
+        {
+            FL_target_position = data.oMf[FL_foot_frame_id].translation();
+            FL_target_position[2] = 0.0;
+            FR_target_position = data.oMf[FR_foot_frame_id].translation();
+            FR_target_position[2] = 0.0;
+            BL_target_position = data.oMf[BL_foot_frame_id].translation();
+            BL_target_position[2] = 0.0;
+            BR_target_position = data.oMf[BR_foot_frame_id].translation();
+            BR_target_position[2] = 0.0;
+        }
+        
 
         // std::cout << "      FL_target_position: " << FL_target_position.transpose() << std::endl;
         // std::cout << "      FR_target_position: " << FR_target_position.transpose() << std::endl;
@@ -188,7 +200,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
                                                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
                                                     PinocchioEndEffectorKinematics & endEffectorKinematics)
 {
-    int num_projections = 2500;
+    int num_projections = 10000;
 
     Eigen::VectorXd q = Eigen::VectorXd::Zero(18);
     Eigen::VectorXd v = Eigen::VectorXd::Zero(18);
@@ -219,12 +231,24 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
         for (int j = 0; j < 12; j++)
             new_q[6 + j] += joint_distribution(generator);
 
-        foundTransition = IKProjection(new_q, v, torso_pose, interface, leggedRobotVisualizer);
+        foundTransition = IKProjection(new_q, v, torso_pose, interface, leggedRobotVisualizer, false);
 
         if (foundTransition)
             publishContact(new_q, endEffectorKinematics);       
         visualizeSuperquadric(leggedRobotVisualizer);
     }
+
+    Eigen::VectorXd new_q = q;
+
+    new_q[0] = torso_pose[0]; new_q[1] = torso_pose[1]; new_q[2] = torso_pose[2];
+    new_q[3] = 0.0; new_q[4] = 0.0; new_q[5] = 0.0;
+
+    new_q.block(6, 0, 12, 1) = defaultState.block(12, 0, 12, 1);
+
+    foundTransition = IKProjection(new_q, v, torso_pose, interface, leggedRobotVisualizer, true);
+
+    publishProjection(interface, new_q, leggedRobotVisualizer);
+
 }
 
 void ReachabilityAnalyzer::publishProjection(LeggedRobotInterface & interface, Eigen::VectorXd & q, 

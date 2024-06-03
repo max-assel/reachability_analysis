@@ -27,7 +27,8 @@ private:
                         const Eigen::VectorXd & v,
                         Eigen::Vector3d torso_pose,
                         LeggedRobotInterface & interface,
-                        std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
+                        std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
+                        bool final);
     void publishProjection(LeggedRobotInterface & interface, Eigen::VectorXd & x, std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
     void publishContact(Eigen::VectorXd & q, 
                         PinocchioEndEffectorKinematics & endEffectorKinematics);
