@@ -22,17 +22,15 @@ int main(int argc, char** argv)
     ros::NodeHandle nodeHandle;
 
     // Get node parameters
-    std::string taskFile, urdfFile, referenceFile, rebarFile, obstaclesFile;
-    bool rviz;
+    std::string taskFile, urdfFile, referenceFile, envFile;
+
     nodeHandle.getParam("/taskFile", taskFile);
-    nodeHandle.getParam("/urdfFile", urdfFile);
     nodeHandle.getParam("/referenceFile", referenceFile);
-    nodeHandle.getParam("/rebarFile", rebarFile);
-    nodeHandle.getParam("/obstaclesFile", obstaclesFile);
-    nodeHandle.getParam("/rviz", rviz);
+    nodeHandle.getParam("/urdfFile", urdfFile);
+    nodeHandle.getParam("/envFile", envFile);
 
     // Robot interface
-    LeggedRobotInterface interface(taskFile, urdfFile, referenceFile, rebarFile, obstaclesFile);
+    LeggedRobotInterface interface(taskFile, urdfFile, referenceFile, envFile);
   
     // MRT
     MRT_ROS_Interface mrt(robotName);
@@ -53,17 +51,25 @@ int main(int argc, char** argv)
 
     ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(nodeHandle);
 
-    endEffectorKinematics.setPinocchioInterface(interface.getPinocchioInterface());
-    reachabilityAnalyzer->runReachabilityAnalysis(interface, 
-                                                    leggedRobotVisualizer,
-                                                    endEffectorKinematics);
+    dynamic_reconfigure::Server<reachability_analysis::SuperquadricsConfig> server;
+    dynamic_reconfigure::Server<reachability_analysis::SuperquadricsConfig>::CallbackType f;
 
-    /*
-    while(ros::ok()) 
+    f = boost::bind(&ReachabilityAnalyzer::reconfigureCallback, reachabilityAnalyzer, _1, _2);
+    server.setCallback(f);
+
+    endEffectorKinematics.setPinocchioInterface(interface.getPinocchioInterface());
+
+
+    ros::Rate rate(10);
+
+    while (ros::ok())
     {
-        ros::Duration(1).sleep();    
+        ros::spinOnce(); // need because we are receiving callbacks
+        reachabilityAnalyzer->runReachabilityAnalysis(interface, 
+                                                        leggedRobotVisualizer,
+                                                        endEffectorKinematics);        
+        rate.sleep();
     }
-    */
 
     delete reachabilityAnalyzer;
 

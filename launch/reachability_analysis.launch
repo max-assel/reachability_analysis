@@ -12,15 +12,12 @@
     <arg name="referenceFile"     default="$(find ocs2_quadruped_ros)/config/command/reference_go1.info"/>
     
     <!-- The URDF model of the robot -->
-    <arg name="urdfFile"          default="$(find go1_description)/urdf/go1_withgun_v2.urdf"/>
-    
-    <!-- The file defining gait definition -->
-    <arg name="gaitCommandFile"   default="$(find ocs2_quadruped_ros)/config/command/gait.info"/>
+    <arg name="urdfFile"          default="$(find go1_description)/urdf/go1_simplified.urdf"/>
     
     <!-- The rebar layout file -->
     <!-- <arg name="rebarFile"     default="$(find ocs2_quadruped_ros)/config/rebar/one_rebar.json"/> -->
 
-    <arg name="rebarFile"     default="$(find ocs2_quadruped_ros)/config/rebar/rebar_setup.json" />
+    <arg name="envFile"     default="$(find ocs2_quadruped_ros)/config/rebar/rebar_setup.json" />
 
     <!-- rviz -->
     <group if="$(arg rviz)">
@@ -30,16 +27,14 @@
     </group>
 
     <!-- make the files into global parameters -->
-    <param name="taskFile"          value="$(arg taskFile)" />
-    <param name="referenceFile"     value="$(arg referenceFile)" />
-    <param name="urdfFile"          value="$(arg urdfFile)" />
-    <param name="gaitCommandFile"   value="$(arg gaitCommandFile)" />
-    <param name="rebarFile"         value="$(arg rebarFile)" />
-    <param name="rviz"              value="$(arg rviz)" />
-
-    <param name="a"                 value="1.0" />
+    <param name="taskFile"            value="$(arg taskFile)" />
+    <param name="referenceFile"       value="$(arg referenceFile)" />
+    <param name="urdfFile"            value="$(arg urdfFile)" />
+    <param name="envFile"             value="$(arg envFile)" />
 
     <node pkg="reachability_analysis" type="legged_robot_reachability_analysis" name="legged_robot_reachability_analysis" 
                 output="screen" launch-prefix="gnome-terminal --" />
+
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen"/>
 
 </launch>

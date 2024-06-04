@@ -8,6 +8,7 @@ set(CATKIN_PACKAGE_DEPENDENCIES
     roslib
     ocs2_quadruped
     ocs2_quadruped_ros
+    dynamic_reconfigure
     )
 
 ## Find catkin macros and libraries
@@ -91,21 +92,9 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 ## Declare ROS dynamic reconfigure parameters ##
 ################################################
 
-## To declare and build dynamic reconfigure parameters within this
-## package, follow these steps:
-## * In the file package.xml:
-##   * add a build_depend and a exec_depend tag for "dynamic_reconfigure"
-## * In this file (CMakeLists.txt):
-##   * add "dynamic_reconfigure" to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * uncomment the "generate_dynamic_reconfigure_options" section below
-##     and list every .cfg file to be processed
-
-## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/Superquadrics.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -162,19 +151,20 @@ target_link_libraries(${PROJECT_NAME}
         )
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
 
-# DDP-MPC node for legged robot
+# reachability analysis node
 add_executable(legged_robot_reachability_analysis
-        src/LeggedRobotReachabilityAnalysisNode.cpp
-        )
+                src/LeggedRobotReachabilityAnalysisNode.cpp
+                )
 add_dependencies(legged_robot_reachability_analysis
-        ${PROJECT_NAME}
-        ${${PROJECT_NAME}_EXPORTED_TARGETS}
-        ${catkin_EXPORTED_TARGETS}
-        )
+                        ${PROJECT_NAME}
+                        ${${PROJECT_NAME}_EXPORTED_TARGETS}
+                        ${catkin_EXPORTED_TARGETS}
+                        ${PROJECT_NAME}_gencfg
+                        )
 target_link_libraries(legged_robot_reachability_analysis
-        ${PROJECT_NAME}
-        ${catkin_LIBRARIES}
-        )
+                        ${PROJECT_NAME}
+                        ${catkin_LIBRARIES}
+                        )
 
 #############
 ## Install ##

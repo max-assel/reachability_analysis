@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /RobotModel1
         - /RobotModel1/Links1
         - /Target1
         - /Target1/Group1/Marker1
@@ -18,8 +17,7 @@ Panels:
         - /MarkerArray2
         - /Marker1
         - /Axes1
-        - /MarkerArray5
-        - /MarkerArray6
+        - /MarkerArray3
       Splitter Ratio: 0.5
     Tree Height: 701
   - Class: rviz/Selection
@@ -79,6 +77,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        FL_calf_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         FL_foot:
           Alpha: 1
           Show Axes: false
@@ -89,21 +92,31 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        FL_hip_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         FL_thigh:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        FL_thigh_shoulder:
+        FL_thigh_rotor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         FR_calf:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        FR_calf_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         FR_foot:
           Alpha: 1
           Show Axes: false
@@ -114,22 +127,32 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        FR_hip_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         FR_thigh:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        FR_thigh_shoulder:
+        FR_thigh_rotor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         Link Tree Style: Links in Alphabetic Order
         RL_calf:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        RL_calf_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         RL_foot:
           Alpha: 1
           Show Axes: false
@@ -140,21 +163,31 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        RL_hip_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         RL_thigh:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        RL_thigh_shoulder:
+        RL_thigh_rotor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         RR_calf:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        RR_calf_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         RR_foot:
           Alpha: 1
           Show Axes: false
@@ -165,27 +198,105 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        RR_hip_rotor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         RR_thigh:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        RR_thigh_shoulder:
+        RR_thigh_rotor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         base:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        camera_chin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        camera_face:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        camera_laserscan_link_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_laserscan_link_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        camera_optical_chin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_optical_face:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_optical_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_optical_rearDown:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_optical_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rearDown:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        camera_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         trunk:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
         tying_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        ultraSound_face:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        ultraSound_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
+        ultraSound_right:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -262,14 +373,6 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /polygon_visualization
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Marker
-      Enabled: true
       Marker Topic: /nominal_foothold_visualization
       Name: Marker
       Namespaces:
@@ -278,36 +381,12 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz/Axes
-      Enabled: false
+      Enabled: true
       Length: 0.25
       Name: Axes
       Radius: 0.05000000074505806
       Reference Frame: <Fixed Frame>
       Show Trail: false
-      Value: false
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /obstacles
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /lead
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /torsoPath
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
@@ -317,10 +396,10 @@ Visualization Manager:
         projections: true
       Queue Size: 100
       Value: true
-    - Class: rviz/MarkerArray
+    - Class: rviz/Marker
       Enabled: true
       Marker Topic: /superquadrics
-      Name: MarkerArray
+      Name: Marker
       Namespaces:
         superquadric: true
       Queue Size: 100
@@ -353,7 +432,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4205749034881592
+      Distance: 4.823451995849609
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -369,9 +448,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2097967118024826
+      Pitch: 0.2797969877719879
       Target Frame: <Fixed Frame>
-      Yaw: 5.235411643981934
+      Yaw: 2.2654008865356445
     Saved: ~
 Window Geometry:
   Displays:
