@@ -19,6 +19,9 @@
 
     <arg name="envFile"     default="$(find ocs2_quadruped_ros)/config/rebar/rebar_setup.json" />
 
+    <arg name="volumeFlag"     default="conservative" />
+
+
     <!-- rviz -->
     <group if="$(arg rviz)">
       <param name="$(arg description_name)" textfile="$(arg urdfFile)"/>
@@ -31,6 +34,7 @@
     <param name="referenceFile"       value="$(arg referenceFile)" />
     <param name="urdfFile"            value="$(arg urdfFile)" />
     <param name="envFile"             value="$(arg envFile)" />
+    <param name="volumeFlag"             value="$(arg volumeFlag)" />
 
     <node pkg="reachability_analysis" type="legged_robot_reachability_analysis" name="legged_robot_reachability_analysis" 
                 output="screen" launch-prefix="gnome-terminal --" />

@@ -27,7 +27,8 @@ public:
                                 PinocchioEndEffectorKinematics & endEffectorKinematics);
     void runReachabilityAnalysis(LeggedRobotInterface & interface, 
                                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-                                    PinocchioEndEffectorKinematics & endEffectorKinematics);
+                                    PinocchioEndEffectorKinematics & endEffectorKinematics,
+                                    const std::string & volumeFlag);
     void reconfigureCallback(reachability_analysis::SuperquadricsConfig &config, uint32_t level);
 
 private:

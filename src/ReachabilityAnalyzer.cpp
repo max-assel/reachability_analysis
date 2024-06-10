@@ -214,7 +214,8 @@ ReachabilityAnalyzer::ReachabilityAnalyzer(ros::NodeHandle& nodeHandle)
 
 void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interface, 
                                                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-                                                    PinocchioEndEffectorKinematics & endEffectorKinematics)
+                                                    PinocchioEndEffectorKinematics & endEffectorKinematics,
+                                                    const std::string & volumeFlag)
 {
     // std::cout << "[runReachabilityAnalysis()]" << std::endl;
     // int num_projections = 1000;
@@ -222,8 +223,8 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
     const auto& model = interface.getPinocchioInterface().getModel();
     auto& data = interface.getPinocchioInterface().getData();
 
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(18);
-    Eigen::VectorXd v = Eigen::VectorXd::Zero(18);
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(model.nq);
+    Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
 
     Eigen::Vector3d torso_pose(0.0, 0.0, 0.0);
     Eigen::VectorXd defaultState = interface.getInitialState();
@@ -243,7 +244,37 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
     // set joint poses
     for (int j = 6; j < model.nq; j++)
     {
-        std::uniform_real_distribution<double> joint_distribution(model.lowerPositionLimit[j], model.upperPositionLimit[j]);
+        double min_posn = -1.0;
+        double max_posn = -1.0;
+
+        if (volumeFlag == "full")
+        {
+            min_posn = model.lowerPositionLimit[j];
+            max_posn = model.upperPositionLimit[j];
+        } else if (volumeFlag == "conservative")
+        {
+            if (j == 6 || j == 9 || j == 12 || j == 15) // hip
+            {
+                // Hip position limits: [-0.863, 0.863], default position: 0.0
+                min_posn = -0.430;
+                max_posn = 0.430;
+            } else if (j == 7 || j == 10 || j == 13 || j == 16) // thigh
+            {
+                // Thigh position limits: [-0.686, 4.501], default position: 0.72
+                min_posn = 0.0;
+                max_posn = 1.44;
+            } else if (j == 8 || j == 11 || j == 14 || j == 17) // calf
+            {
+                // Calf position limits: [-2.818, -0.888], default position: -1.44
+                min_posn = -1.88;
+                max_posn = -1.00;
+            }
+        } else
+        {
+            throw std::runtime_error("volume flag '" + volumeFlag + "' is not identified");
+        }
+
+        std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
 
         // randomly sample with limits
         q[j] = joint_distribution(generator);

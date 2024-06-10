@@ -22,12 +22,13 @@ int main(int argc, char** argv)
     ros::NodeHandle nodeHandle;
 
     // Get node parameters
-    std::string taskFile, urdfFile, referenceFile, envFile;
+    std::string taskFile, urdfFile, referenceFile, envFile, volumeFlag;
 
     nodeHandle.getParam("/taskFile", taskFile);
     nodeHandle.getParam("/referenceFile", referenceFile);
     nodeHandle.getParam("/urdfFile", urdfFile);
     nodeHandle.getParam("/envFile", envFile);
+    nodeHandle.getParam("/volumeFlag", volumeFlag);
 
     // Robot interface
     LeggedRobotInterface interface(taskFile, urdfFile, referenceFile, envFile);
@@ -67,7 +68,8 @@ int main(int argc, char** argv)
         ros::spinOnce(); // need because we are receiving callbacks
         reachabilityAnalyzer->runReachabilityAnalysis(interface, 
                                                         leggedRobotVisualizer,
-                                                        endEffectorKinematics);        
+                                                        endEffectorKinematics,
+                                                        volumeFlag);        
         rate.sleep();
     }
 
