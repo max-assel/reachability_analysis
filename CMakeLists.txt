@@ -93,7 +93,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 ################################################
 
 generate_dynamic_reconfigure_options(
-  cfg/Superquadrics.cfg
+  cfg/Parameters.cfg
 )
 
 ###################################

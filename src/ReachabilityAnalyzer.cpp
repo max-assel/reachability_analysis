@@ -55,7 +55,7 @@ void enforceJointLimits(const pinocchio::Model & model, Eigen::VectorXd & q, Eig
     }
 }
 
-void ReachabilityAnalyzer::reconfigureCallback(reachability_analysis::SuperquadricsConfig &config, uint32_t level) 
+void ReachabilityAnalyzer::reconfigureCallback(reachability_analysis::ParametersConfig &config, uint32_t level) 
 {
     sqCurvX = config.sqCurvX;
     sqCurvY = config.sqCurvY;
@@ -70,6 +70,22 @@ void ReachabilityAnalyzer::reconfigureCallback(reachability_analysis::Superquadr
     y_offset_left = config.y_offset_left;
     y_offset_right = config.y_offset_right;
     z_offset = config.z_offset;
+ 
+    FL_hip_manual_pos = config.FL_hip;
+    FL_thigh_manual_pos = config.FL_thigh;
+    FL_calf_manual_pos = config.FL_calf;
+
+    FR_hip_manual_pos = config.FR_hip;
+    FR_thigh_manual_pos = config.FR_thigh;
+    FR_calf_manual_pos = config.FR_calf;
+
+    BL_hip_manual_pos = config.BL_hip;
+    BL_thigh_manual_pos = config.BL_thigh;
+    BL_calf_manual_pos = config.BL_calf;
+
+    BR_hip_manual_pos = config.BR_hip;
+    BR_thigh_manual_pos = config.BR_thigh;
+    BR_calf_manual_pos = config.BR_calf;        
 }
 
 bool ReachabilityAnalyzer::IKProjection(Eigen::VectorXd & new_q,
@@ -251,33 +267,64 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
         {
             min_posn = model.lowerPositionLimit[j];
             max_posn = model.upperPositionLimit[j];
+
+            std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+
+            // randomly sample with limits
+            q[j] = joint_distribution(generator);            
         } else if (volumeFlag == "conservative")
         {
             if (j == 6 || j == 9 || j == 12 || j == 15) // hip
             {
                 // Hip position limits: [-0.863, 0.863], default position: 0.0
-                min_posn = -0.430;
-                max_posn = 0.430;
+                min_posn = -0.2; // -0.430;
+                max_posn = 0.2; // 0.430;
             } else if (j == 7 || j == 10 || j == 13 || j == 16) // thigh
             {
                 // Thigh position limits: [-0.686, 4.501], default position: 0.72
-                min_posn = 0.0;
-                max_posn = 1.44;
+                min_posn = 0.5;
+                max_posn = 1.0; // 1.44;
             } else if (j == 8 || j == 11 || j == 14 || j == 17) // calf
             {
                 // Calf position limits: [-2.818, -0.888], default position: -1.44
                 min_posn = -1.88;
                 max_posn = -1.00;
             }
+
+            std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+
+            // randomly sample with limits
+            q[j] = joint_distribution(generator);    
+        } else if (volumeFlag == "manual")
+        {
+            if (j == 6)
+                q[j] = FL_hip_manual_pos;
+            else if (j == 7)
+                q[j] = FL_thigh_manual_pos;
+            else if (j == 8)
+                q[j] = FL_calf_manual_pos;
+            else if (j == 9)
+                q[j] = FR_hip_manual_pos;
+            else if (j == 10)
+                q[j] = FR_thigh_manual_pos;
+            else if (j == 11)
+                q[j] = FR_calf_manual_pos;
+            else if (j == 12)
+                q[j] = BL_hip_manual_pos;
+            else if (j == 13)
+                q[j] = BL_thigh_manual_pos;
+            else if (j == 14)
+                q[j] = BL_calf_manual_pos;
+            else if (j == 15)
+                q[j] = BR_hip_manual_pos;
+            else if (j == 16)
+                q[j] = BR_thigh_manual_pos;
+            else if (j == 17)
+                q[j] = BR_calf_manual_pos;                
         } else
         {
             throw std::runtime_error("volume flag '" + volumeFlag + "' is not identified");
         }
-
-        std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
-
-        // randomly sample with limits
-        q[j] = joint_distribution(generator);
     }    
 
     // update model based on current configuration
@@ -287,9 +334,6 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(LeggedRobotInterface & interf
 
     publishEEPositions(q, endEffectorKinematics);       
     publishState(interface, q, leggedRobotVisualizer);
-
-    
-    // }
 
     // fit superquadrics to dataset
     visualize3DSuperquadrics(torso_pose);

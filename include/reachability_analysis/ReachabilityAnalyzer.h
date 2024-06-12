@@ -13,7 +13,7 @@
 #include <geometry_msgs/Point.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <reachability_analysis/SuperquadricsConfig.h>
+#include <reachability_analysis/ParametersConfig.h>
 
 namespace ocs2 {
 namespace quadruped {
@@ -29,7 +29,7 @@ public:
                                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
                                     PinocchioEndEffectorKinematics & endEffectorKinematics,
                                     const std::string & volumeFlag);
-    void reconfigureCallback(reachability_analysis::SuperquadricsConfig &config, uint32_t level);
+    void reconfigureCallback(reachability_analysis::ParametersConfig &config, uint32_t level);
 
 private:
     bool IKProjection(Eigen::VectorXd & new_q,
@@ -59,6 +59,22 @@ private:
     double y_offset_left = 0.0;
     double y_offset_right = 0.0;
     double z_offset = 0.0;
+
+    double FL_hip_manual_pos = 0.0;
+    double FL_thigh_manual_pos = 0.0;
+    double FL_calf_manual_pos = 0.0;
+
+    double FR_hip_manual_pos = 0.0;
+    double FR_thigh_manual_pos = 0.0;
+    double FR_calf_manual_pos = 0.0;
+
+    double BL_hip_manual_pos = 0.0;
+    double BL_thigh_manual_pos = 0.0;
+    double BL_calf_manual_pos = 0.0;
+
+    double BR_hip_manual_pos = 0.0;
+    double BR_thigh_manual_pos = 0.0;
+    double BR_calf_manual_pos = 0.0;        
 
     ros::Publisher projectionPublisher;
     ros::Publisher superquadricPublisher;

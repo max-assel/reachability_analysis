@@ -52,11 +52,11 @@ int main(int argc, char** argv)
 
     ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(nodeHandle);
 
-    dynamic_reconfigure::Server<reachability_analysis::SuperquadricsConfig> server;
-    dynamic_reconfigure::Server<reachability_analysis::SuperquadricsConfig>::CallbackType f;
+    dynamic_reconfigure::Server<reachability_analysis::ParametersConfig> server;
+    dynamic_reconfigure::Server<reachability_analysis::ParametersConfig>::CallbackType serverCallback;
 
-    f = boost::bind(&ReachabilityAnalyzer::reconfigureCallback, reachabilityAnalyzer, _1, _2);
-    server.setCallback(f);
+    serverCallback = boost::bind(&ReachabilityAnalyzer::reconfigureCallback, reachabilityAnalyzer, _1, _2);
+    server.setCallback(serverCallback);
 
     endEffectorKinematics.setPinocchioInterface(interface.getPinocchioInterface());
 

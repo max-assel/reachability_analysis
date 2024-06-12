@@ -19,7 +19,7 @@
 
     <arg name="envFile"     default="$(find ocs2_quadruped_ros)/config/rebar/rebar_setup.json" />
 
-    <arg name="volumeFlag"     default="conservative" />
+    <arg name="volumeFlag"     default="conservative" /> <!-- options: full, conservative, manual  -->
 
 
     <!-- rviz -->
