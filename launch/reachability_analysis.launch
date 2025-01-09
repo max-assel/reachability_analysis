@@ -3,28 +3,25 @@
 <launch>
     <!-- visualization config -->
     <arg name="rviz"               default="true" />
-    <arg name="description_name"   default="robot_description"/>
 
     <!-- The task file for the mpc. -->
-    <arg name="taskFile"          default="$(find ocs2_quadruped_ros)/config/mpc/task_go1.info"/>
+    <arg name="taskFile"          default="$(find ocs2_quadruped_ros)/config/mpc/task_go2.info"/>
     
     <!-- The reference related config file of the robot -->
-    <arg name="referenceFile"     default="$(find ocs2_quadruped_ros)/config/command/reference_go1.info"/>
+    <arg name="referenceFile"     default="$(find ocs2_quadruped_ros)/config/command/reference_go2.info"/>
     
     <!-- The URDF model of the robot -->
-    <arg name="urdfFile"          default="$(find go1_description)/urdf/go1_simplified.urdf"/>
+    <arg name="urdfFile"          default="$(find go2_description)/urdf/go2_simplified.urdf"/>
     
     <!-- The rebar layout file -->
     <!-- <arg name="rebarFile"     default="$(find ocs2_quadruped_ros)/config/rebar/one_rebar.json"/> -->
 
-    <arg name="envFile"     default="$(find ocs2_quadruped_ros)/config/rebar/rebar_setup.json" />
-
-    <arg name="volumeFlag"     default="conservative" /> <!-- options: full, conservative, manual  -->
+    <arg name="volumeFlag"     default="full" /> <!-- options: full, conservative, manual  -->
 
 
     <!-- rviz -->
     <group if="$(arg rviz)">
-      <param name="$(arg description_name)" textfile="$(arg urdfFile)"/>
+      <param name="robot_description" textfile="$(arg urdfFile)"/>
       <arg name="rvizconfig" default="$(find reachability_analysis)/rviz/reachability.rviz" />
       <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" />
     </group>
@@ -33,7 +30,6 @@
     <param name="taskFile"            value="$(arg taskFile)" />
     <param name="referenceFile"       value="$(arg referenceFile)" />
     <param name="urdfFile"            value="$(arg urdfFile)" />
-    <param name="envFile"             value="$(arg envFile)" />
     <param name="volumeFlag"             value="$(arg volumeFlag)" />
 
     <node pkg="reachability_analysis" type="legged_robot_reachability_analysis" name="legged_robot_reachability_analysis" 

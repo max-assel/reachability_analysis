@@ -22,9 +22,9 @@ class ReachabilityAnalyzer
 {
 public:
     ReachabilityAnalyzer(ros::NodeHandle& nodeHandle);
-    void runProjectionAnalysis(LeggedRobotInterface & interface, 
-                                std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-                                PinocchioEndEffectorKinematics & endEffectorKinematics);
+    // void runProjectionAnalysis(LeggedRobotInterface & interface, 
+    //                             std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
+    //                             PinocchioEndEffectorKinematics & endEffectorKinematics);
     void runReachabilityAnalysis(LeggedRobotInterface & interface, 
                                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
                                     PinocchioEndEffectorKinematics & endEffectorKinematics,
@@ -32,19 +32,19 @@ public:
     void reconfigureCallback(reachability_analysis::ParametersConfig &config, uint32_t level);
 
 private:
-    bool IKProjection(Eigen::VectorXd & new_q,
-                        const Eigen::VectorXd & v,
-                        Eigen::Vector3d torso_pose,
-                        LeggedRobotInterface & interface,
-                        std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-                        bool final);
+    // bool IKProjection(Eigen::VectorXd & new_q,
+    //                     const Eigen::VectorXd & v,
+    //                     Eigen::Vector3d torso_pose,
+    //                     LeggedRobotInterface & interface,
+    //                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
+    //                     bool final);
     void publishState(LeggedRobotInterface & interface, Eigen::VectorXd & x, std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
     void publishEEPositions(Eigen::VectorXd & q, 
                             PinocchioEndEffectorKinematics & endEffectorKinematics);
     void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
     void visualize3DSuperquadric(const int & legIdx,
                                     const Eigen::Vector3d & p_torso);                            
-    void visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
+    // void visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
 
     double sqCurvX = 0.5;
     double sqCurvY = 0.5;
@@ -59,6 +59,10 @@ private:
     double y_offset_left = 0.0;
     double y_offset_right = 0.0;
     double z_offset = 0.0;
+
+    double roll = 0.0; // left/right
+    double pitch = 0.0; // front/back
+    double yaw = 0.0; // ??
 
     double FL_hip_manual_pos = 0.0;
     double FL_thigh_manual_pos = 0.0;

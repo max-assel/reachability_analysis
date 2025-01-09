@@ -22,16 +22,16 @@ int main(int argc, char** argv)
     ros::NodeHandle nodeHandle;
 
     // Get node parameters
-    std::string taskFile, urdfFile, referenceFile, envFile, volumeFlag;
+    std::string taskFile, urdfFile, referenceFile, volumeFlag; // envFile, 
 
     nodeHandle.getParam("/taskFile", taskFile);
     nodeHandle.getParam("/referenceFile", referenceFile);
     nodeHandle.getParam("/urdfFile", urdfFile);
-    nodeHandle.getParam("/envFile", envFile);
+    // nodeHandle.getParam("/envFile", envFile);
     nodeHandle.getParam("/volumeFlag", volumeFlag);
 
     // Robot interface
-    LeggedRobotInterface interface(taskFile, urdfFile, referenceFile, envFile);
+    LeggedRobotInterface interface(taskFile, urdfFile, referenceFile);
   
     // MRT
     MRT_ROS_Interface mrt(robotName);
