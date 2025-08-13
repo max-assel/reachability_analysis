@@ -227,10 +227,12 @@
 // }
 
 ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
-                                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface)
+                                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface,
+                                            std::shared_ptr<switched_model::CustomQuadrupedVisualizer> & visualizer)
 {
     node_ = node;
     interface_ = interface;
+    visualizer_ = visualizer;
     projectionPublisher = node_->create_publisher<visualization_msgs::msg::MarkerArray>("/projections", 1);
     superquadricPublisher = node_->create_publisher<visualization_msgs::msg::Marker>("/superquadrics", 1);
     marker_counter = 0;
@@ -344,7 +346,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
     // pinocchio::updateFramePlacements(model, data);
 
     publishEEPositions(q);       
-    // publishState(interface, q, leggedRobotVisualizer);
+    publishState(q);
 
     // // fit superquadrics to dataset
     // visualize3DSuperquadrics(torso_pose);
@@ -352,24 +354,23 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
     return;
 }
 
-// void ReachabilityAnalyzer::publishState(LeggedRobotInterface & interface, Eigen::VectorXd & q, 
-//                                              std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer)
-// {
-//     Eigen::VectorXd x = Eigen::VectorXd::Zero(q.size() + 6);
-//     x.block(6, 0, 18, 1) = q;
+void ReachabilityAnalyzer::publishState(const Eigen::VectorXd & q)
+{
+    Eigen::VectorXd x = Eigen::VectorXd::Zero(q.size() + 6);
+    x.block(6, 0, 18, 1) = q;
 
-//     double real_time_factor = 0.1;
+    double real_time_factor = 0.1;
 
-//     SystemObservation sol;
-//     sol.state = x;
-//     sol.input = x;
-//     const auto timeStamp = ros::Time::now();
+    ocs2::SystemObservation sol;
+    sol.state = x;
+    sol.input = Eigen::VectorXd::Zero(q.size());
+    const auto timeStamp = node_->get_clock()->now();
 
-//     leggedRobotVisualizer->publishObservation(timeStamp, sol);
-//     ros::Rate(real_time_factor * 1.0 / interface.getRollout().settings().timeStep).sleep();
-// }
+    visualizer_->publishObservation(timeStamp, sol);
+    // rclcpp::Rate(real_time_factor * 1.0 / interface_.getRollout().settings().timeStep).sleep();
+}
 
-void ReachabilityAnalyzer::publishEEPositions(Eigen::VectorXd & q)
+void ReachabilityAnalyzer::publishEEPositions(const Eigen::VectorXd & q)
 {
     assert(q.size() == CONFIG_DIM && "q must have size 18");
 

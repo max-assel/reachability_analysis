@@ -59,7 +59,7 @@ int main(int argc, char** argv)
                                                         mpcSettings.mpcDesiredFrequency_);
     leggedRobotDummySimulator.subscribeObservers({visualizer});
 
-    ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, go2Interface);
+    ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, go2Interface, visualizer);
 
     // dynamic_reconfigure::Server<reachability_analysis::ParametersConfig> server;
     // dynamic_reconfigure::Server<reachability_analysis::ParametersConfig>::CallbackType serverCallback;

@@ -32,7 +32,8 @@ class ReachabilityAnalyzer
 {
 public:
     ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
-                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface);
+                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface,
+                            std::shared_ptr<switched_model::CustomQuadrupedVisualizer> & visualizer);
 
     // LeggedRobotInterface & interface, 
     // std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
@@ -49,14 +50,15 @@ private:
     // //                     LeggedRobotInterface & interface,
     // //                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
     // //                     bool final);
-    // void publishState(LeggedRobotInterface & interface, Eigen::VectorXd & x, std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
-    void publishEEPositions(Eigen::VectorXd & q);
+    void publishState(const Eigen::VectorXd & q);
+    void publishEEPositions(const Eigen::VectorXd & q);
     // void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
     // void visualize3DSuperquadric(const int & legIdx,
     //                                 const Eigen::Vector3d & p_torso);                            
     // // void visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
 
     std::shared_ptr<switched_model::CustomQuadrupedInterface> interface_; /**< Go2 interface */
+    std::shared_ptr<switched_model::CustomQuadrupedVisualizer> visualizer_; /**< Go2 visualizer */
 
     rclcpp::Node::SharedPtr node_;
 
