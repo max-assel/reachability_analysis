@@ -9,11 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(dependencies
-    rclcpp
-    # ocs2_custom_quadruped_interface
-    ocs2_ros_interfaces
-    ocs2_go2_mpc
-    )
+  rclcpp
+  ocs2_ros_interfaces
+  ocs2_go2_mpc
+  ocs2_robotic_tools
+)
 
 
 # Find ROS2 build system
@@ -50,9 +50,6 @@ add_library(${PROJECT_NAME}
 )
 ament_target_dependencies(${PROJECT_NAME} 
 	${dependencies}
-)
-target_link_libraries(${PROJECT_NAME}
-    ${EIGEN3_INCLUDE_DIRS}
 )
         
 # reachability analysis node

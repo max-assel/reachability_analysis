@@ -8,6 +8,8 @@
 #include <ocs2_custom_quadruped_interface/CustomQuadrupedVisualizer.h>
 // #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
+
 #include <ocs2_ros_interfaces/visualization/VisualizationHelpers.h>
 
 #include <ocs2_custom_quadruped_interface/CustomQuadrupedInterface.h>
@@ -27,6 +29,7 @@
 // namespace quadruped {
 
 static constexpr size_t CONFIG_DIM = 18;
+enum LegIndex {FL = 0, FR = 1, BL = 2, BR = 3}; /**< Enum for leg indices */
 
 class ReachabilityAnalyzer
 {
@@ -52,9 +55,9 @@ private:
     // //                     bool final);
     void publishState(const Eigen::VectorXd & q);
     void publishEEPositions(const Eigen::VectorXd & q);
-    // void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
-    // void visualize3DSuperquadric(const int & legIdx,
-    //                                 const Eigen::Vector3d & p_torso);                            
+    void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
+    void visualize3DSuperquadric(const int & legIdx,
+                                    const Eigen::Vector3d & p_torso);                            
     // // void visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
 
     std::shared_ptr<switched_model::CustomQuadrupedInterface> interface_; /**< Go2 interface */
@@ -62,21 +65,20 @@ private:
 
     rclcpp::Node::SharedPtr node_;
 
-    double sqCurvX = 0.5;
-    double sqCurvY = 0.5;
-    double sqCurvZ = 0.5;
+    double sqDimX = 0.40;
+    double sqDimY = 0.35;
+    double sqDimZ = 0.2125;
 
-    double sqDimX = 0.175;
-    double sqDimY = 0.15;
-    double sqDimZ = 0.30;
+    double sqCurvX = 1.5;
+    double sqCurvY = 2.0;
+    double sqCurvZ = 2.0;
 
-    double x_offset_front = 0.0;
-    double x_offset_back = 0.0;
-    double y_offset_left = 0.0;
-    double y_offset_right = 0.0;
-    double z_offset = 0.0;
+    double x_offset_front = 0.20;
+    double x_offset_back = -0.20;
+    double y_offset = 0.025;
+    double z_offset = -0.25;
 
-    double roll = 0.0; // left/right
+    double roll = 0.30; // left/right
     double pitch = 0.0; // front/back
     double yaw = 0.0; // ??      
 

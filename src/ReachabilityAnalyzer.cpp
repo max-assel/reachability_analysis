@@ -348,8 +348,8 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
     publishEEPositions(q);       
     publishState(q);
 
-    // // fit superquadrics to dataset
-    // visualize3DSuperquadrics(torso_pose);
+    // fit superquadrics to dataset
+    visualize3DSuperquadrics(torso_pose);
 
     return;
 }
@@ -457,179 +457,177 @@ void ReachabilityAnalyzer::publishEEPositions(const Eigen::VectorXd & q)
     // ros::Duration(0.1).sleep();
 }
 
-// int signum(double value)
-// {
-//     if (value < 0)
-//         return -1;
-//     else if (value == 0)
-//         return 0;
-//     else   
-//         return 1;
-// }   
+int sign(const double & input)
+{
+    if (input > 0)
+        return 1;
+    else if (input < 0)
+        return -1;
+    else
+        return 0;
+}
 
-// void ReachabilityAnalyzer::visualize3DSuperquadrics(const Eigen::Vector3d & p_torso)
-// {
-//     for (int leg_idx = 0; leg_idx < 4; leg_idx++)
-//     {
-//         visualize3DSuperquadric(leg_idx, p_torso);
-//     }
-// }
+void ReachabilityAnalyzer::visualize3DSuperquadrics(const Eigen::Vector3d & p_torso)
+{
+    for (int leg_idx = 0; leg_idx < 4; leg_idx++)
+    {
+        visualize3DSuperquadric(leg_idx, p_torso);
+    }
+}
 
-// void ReachabilityAnalyzer::visualize3DSuperquadric(const int & legIdx,
-//                                                     const Eigen::Vector3d & p_torso)
-// {
-//     // std::cout << "                                          yaw: " << yaw << std::endl;
-//     // std::cout << "                                          pitch: " << pitch << std::endl;
-//     // std::cout << "                                          roll: " << roll << std::endl;
+void ReachabilityAnalyzer::visualize3DSuperquadric(const int & legIdx,
+                                                    const Eigen::Vector3d & p_torso)
+{
+    // std::cout << "                                          yaw: " << yaw << std::endl;
+    // std::cout << "                                          pitch: " << pitch << std::endl;
+    // std::cout << "                                          roll: " << roll << std::endl;
     
-//     Eigen::Vector3d sqDims(sqDimX, sqDimY, sqDimZ);
-//     Eigen::Vector3d sqCurvature(sqCurvX, sqCurvY, sqCurvZ);
+    Eigen::Vector3d sqDims(sqDimX, sqDimY, sqDimZ);
+    Eigen::Vector3d sqCurvature(sqCurvX, sqCurvY, sqCurvZ);
 
-//     Eigen::Vector3d sqCenter;
-//     Eigen::Vector3d sqOrientationZyx;
-//     if (legIdx == 0) // FL
-//     {
-//         sqCenter << x_offset_front, y_offset_left, z_offset;
-//         sqOrientationZyx << yaw, pitch, roll;
-//     } else
-//     {
-//         return;
-//     }
-    
-//     // } else if (legIdx == 1) // FR
-//     // {
-//     //     sqCenter << x_offset_front, y_offset_right, z_offset;
-//     //     sqOrientationZyx << yaw, pitch, -roll;
-//     // } else if (legIdx == 2) // BL
-//     // {
-//     //     sqCenter << x_offset_back, y_offset_left, z_offset;
-//     //     sqOrientationZyx << yaw, -pitch, roll;
-//     // } else                  // BR
-//     // {
-//     //     sqCenter << x_offset_back, y_offset_right, z_offset;
-//     //     sqOrientationZyx << yaw, -pitch, -roll;    
-//     // }
+    Eigen::Vector3d sqCenter;
+    Eigen::Vector3d sqOrientation;
+    if (legIdx == FL)
+    {
+        sqCenter << x_offset_front, y_offset, z_offset;
+        sqOrientation << roll, pitch, yaw;
+    } else if (legIdx == FR)
+    {
+        sqCenter << x_offset_front, -y_offset, z_offset;
+        sqOrientation << -roll, pitch, yaw;        
+    } else if (legIdx == BL)
+    {
+        sqCenter << x_offset_back, y_offset, z_offset;
+        sqOrientation << roll, -pitch, yaw;
+    } else if (legIdx == BR)
+    {
+        sqCenter << x_offset_back, -y_offset, z_offset;
+        sqOrientation << -roll, -pitch, yaw;
+    } else    
+    {
+        throw std::invalid_argument("Invalid leg index.");
+    }
 
-//     Eigen::Quaterniond q = ocs2::getQuaternionFromEulerAnglesZyx(sqOrientationZyx);
+    Eigen::Quaterniond q = ocs2::getQuaternionFromEulerAnglesXyz(sqOrientation);
 
-//     visualization_msgs::msg::Marker marker;
-//     marker.header.frame_id = "odom";
-//     marker.header.stamp = ros::Time();
-//     marker.ns = "superquadric";
-//     marker.id = legIdx;
-//     marker.type = visualization_msgs::msg::Marker::TRIANGLE_LIST; // visualization_msgs::msg::Marker::LINE_STRIP;
-//     marker.action = visualization_msgs::msg::Marker::ADD;
-//     marker.pose.position.x = p_torso[0];
-//     marker.pose.position.y = p_torso[1];
-//     marker.pose.position.z = p_torso[2];
-//     marker.pose.orientation.x = q.x();
-//     marker.pose.orientation.y = q.y();
-//     marker.pose.orientation.z = q.z();
-//     marker.pose.orientation.w = q.w();
-//     marker.scale.x = 1.0; // 0.01;
-//     marker.scale.y = 1.0;
-//     marker.scale.z = 1.0;
-//     marker.color = getColor(feetColorMap_[legIdx]);
-//     marker.color.a = 0.8;
+    visualization_msgs::msg::Marker marker;
+    marker.header.frame_id = "odom";
+    marker.header.stamp = node_->get_clock()->now();
+    marker.ns = "superquadric";
+    marker.id = legIdx;
+    marker.type = visualization_msgs::msg::Marker::TRIANGLE_LIST; // visualization_msgs::msg::Marker::LINE_STRIP;
+    marker.action = visualization_msgs::msg::Marker::ADD;
+    marker.pose.position.x = p_torso[0];
+    marker.pose.position.y = p_torso[1];
+    marker.pose.position.z = p_torso[2];
+    marker.pose.orientation.x = q.x();
+    marker.pose.orientation.y = q.y();
+    marker.pose.orientation.z = q.z();
+    marker.pose.orientation.w = q.w();
+    marker.scale.x = 1.0; // 0.01;
+    marker.scale.y = 1.0;
+    marker.scale.z = 1.0;
+    marker.color = ocs2::getColor(feetColorMap_[legIdx]);
+    marker.color.a = 0.8;
 
-//     // Eigen::Vector3d epsilon(0.5, 0.5, 0.5);
-//     // Eigen::Vector3d C(0.15, 0.175, 0.15);
+    // Eigen::Vector3d epsilon(0.5, 0.5, 0.5);
+    // Eigen::Vector3d C(0.15, 0.175, 0.15);
 
-//     // Eigen::Vector3d center(1.0, 0.0, 0.0);
+    // Eigen::Vector3d center(1.0, 0.0, 0.0);
 
-//     int n = 60;
+    int n = 60;
 
-//     Eigen::VectorXd x(n * n);
-//     Eigen::VectorXd y(n * n);
-//     Eigen::VectorXd z(n * n);
+    Eigen::VectorXd x(n * n);
+    Eigen::VectorXd y(n * n);
+    Eigen::VectorXd z(n * n);
 
-//     double etamax = M_PI/2;
-//     double etamin = -M_PI/2;
-//     double wmax = M_PI;
-//     double wmin = -M_PI;
-//     double deta = (etamax-etamin)/n;
-//     double dw = (wmax-wmin)/n;
+    double etamax = M_PI/2;
+    double etamin = -M_PI/2;
+    double wmax = M_PI;
+    double wmin = -M_PI;
+    double deta = (etamax-etamin)/n;
+    double dw = (wmax-wmin)/n;
 
-//     for (int i = 0; i <= n; i++)
-//     {
-//         for (int j = 0; j <= n; j++)
-//         {
-//             geometry_msgs::Point p1;
-//             double eta = etamin + (i-1) * deta;
-//             double w   = wmin + (j-1) * dw;            
-//             p1.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//             p1.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//             p1.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    for (int i = 0; i <= n; i++)
+    {
+        for (int j = 0; j <= n; j++)
+        {
+            geometry_msgs::msg::Point p1;
+            double eta = etamin + (i-1) * deta;
+            double w   = wmin + (j-1) * dw;            
+            p1.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+            p1.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+            p1.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
 
-//             geometry_msgs::Point p2;
-//             eta = etamin + ((i+1)-1) * deta;
-//             w = wmin + (j-1) * dw;            
-//             p2.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//             p2.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//             p2.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+            geometry_msgs::msg::Point p2;
+            eta = etamin + ((i+1)-1) * deta;
+            w = wmin + (j-1) * dw;            
+            p2.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+            p2.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+            p2.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
 
-//             geometry_msgs::Point p3;
-//             eta = etamin + (i-1) * deta;
-//             w = wmin + ((j+1)-1) * dw;            
-//             p3.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//             p3.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//             p3.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+            geometry_msgs::msg::Point p3;
+            eta = etamin + (i-1) * deta;
+            w = wmin + ((j+1)-1) * dw;            
+            p3.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+            p3.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+            p3.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
 
-//             geometry_msgs::Point p4;
-//             eta = etamin + ((i+1)-1) * deta;
-//             w = wmin + ((j+1)-1) * dw;            
-//             p4.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//             p4.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//             p4.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);    
+            geometry_msgs::msg::Point p4;
+            eta = etamin + ((i+1)-1) * deta;
+            w = wmin + ((j+1)-1) * dw;            
+            p4.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+            p4.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+            p4.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);    
 
-//             marker.points.push_back(p3);
-//             marker.points.push_back(p2);
-//             marker.points.push_back(p1); 
+            marker.points.push_back(p3);
+            marker.points.push_back(p2);
+            marker.points.push_back(p1); 
 
-//             marker.points.push_back(p2);
-//             marker.points.push_back(p3);
-//             marker.points.push_back(p4);             
-//         }
-//     }
+            marker.points.push_back(p2);
+            marker.points.push_back(p3);
+            marker.points.push_back(p4);             
+        }
+    }
 
-//     geometry_msgs::Point p1;
-//     double eta = etamin + n * deta;
-//     double w   = wmin + n * dw;            
-//     p1.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//     p1.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//     p1.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    geometry_msgs::msg::Point p1;
+    double eta = etamin + n * deta;
+    double w   = wmin + n * dw;            
+    p1.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+    p1.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+    p1.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
 
-//     geometry_msgs::Point p2;
-//     eta = etamin + (0.0) * deta;
-//     w = wmin + n * dw;            
-//     p2.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//     p2.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//     p2.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    geometry_msgs::msg::Point p2;
+    eta = etamin + (0.0) * deta;
+    w = wmin + n * dw;            
+    p2.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+    p2.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+    p2.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
 
-//     geometry_msgs::Point p3;
-//     eta = etamin + n * deta;
-//     w = wmin + (0.0) * dw;            
-//     p3.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//     p3.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//     p3.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    geometry_msgs::msg::Point p3;
+    eta = etamin + n * deta;
+    w = wmin + (0.0) * dw;            
+    p3.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+    p3.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+    p3.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
 
-//     geometry_msgs::Point p4;
-//     eta = etamin + (0.0) * deta;
-//     w = wmin + (0.0) * dw;            
-//     p4.x = sqCenter[0] + sqDims[0] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * signum(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-//     p4.y = sqCenter[1] + sqDims[1] * signum(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * signum(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-//     p4.z = sqCenter[2] + sqDims[2] * signum(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);    
+    geometry_msgs::msg::Point p4;
+    eta = etamin + (0.0) * deta;
+    w = wmin + (0.0) * dw;            
+    p4.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+    p4.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
+    p4.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);    
 
-//     marker.points.push_back(p3);
-//     marker.points.push_back(p2);
-//     marker.points.push_back(p1); 
+    marker.points.push_back(p3);
+    marker.points.push_back(p2);
+    marker.points.push_back(p1); 
 
-//     marker.points.push_back(p2);
-//     marker.points.push_back(p3);
-//     marker.points.push_back(p4);     
+    marker.points.push_back(p2);
+    marker.points.push_back(p3);
+    marker.points.push_back(p4);     
 
-//     superquadricPublisher.publish(marker);
-// }
+    superquadricPublisher->publish(marker);
+}
 
 // void ReachabilityAnalyzer::visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer)
 // {
@@ -675,10 +673,10 @@ void ReachabilityAnalyzer::publishEEPositions(const Eigen::VectorXd & q)
 //         {
 //             double theta = theta_min + (i) * delta_theta;
             
-//             double x = x0s[leg_idx] + sqDimX * signum(std::cos(theta)) * std::pow(std::abs(std::cos(theta)), sqCurvX);
-//             double y = y0s[leg_idx] + sqDimY * signum(std::sin(theta)) * std::pow(std::abs(std::sin(theta)), sqCurvY);
+//             double x = x0s[leg_idx] + sqDimX * sign(std::cos(theta)) * std::pow(std::abs(std::cos(theta)), sqCurvX);
+//             double y = y0s[leg_idx] + sqDimY * sign(std::sin(theta)) * std::pow(std::abs(std::sin(theta)), sqCurvY);
 
-//             geometry_msgs::Point p;
+//             geometry_msgs::msg::Point p;
 //             p.x = x;
 //             p.y = y;
 //             p.z = 0.0;

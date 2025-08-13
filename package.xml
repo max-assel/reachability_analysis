@@ -37,6 +37,7 @@
   <!-- <depend>ocs2_custom_quadruped_interface</depend> -->
   <depend>ocs2_ros_interfaces</depend>
   <depend>ocs2_go2_mpc</depend>
+  <depend>ocs2_robotic_tools</depend>
   <!-- <depend>ocs2_quadruped_ros</depend>
   <depend>ocs2_quadruped</depend>
   <depend>dynamic_reconfigure</depend>
