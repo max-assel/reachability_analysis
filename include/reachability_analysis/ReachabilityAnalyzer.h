@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rclcpp/rclcpp.hpp>
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
 
 #include <random>
 
@@ -38,27 +39,16 @@ public:
                             std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface,
                             std::shared_ptr<switched_model::CustomQuadrupedVisualizer> & visualizer);
 
-    // LeggedRobotInterface & interface, 
-    // std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-    // PinocchioEndEffectorKinematics & endEffectorKinematics,
-    // const std::string & volumeFlag
-    
     void runReachabilityAnalysis(const rclcpp::Time & timeStamp);
-    // void reconfigureCallback(reachability_analysis::ParametersConfig &config, uint32_t level);
 
 private:
-    // // bool IKProjection(Eigen::VectorXd & new_q,
-    // //                     const Eigen::VectorXd & v,
-    // //                     Eigen::Vector3d torso_pose,
-    // //                     LeggedRobotInterface & interface,
-    // //                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-    // //                     bool final);
+    rcl_interfaces::msg::SetParametersResult parametersCallback(const std::vector<rclcpp::Parameter> &parameters);
+
     void publishState(const Eigen::VectorXd & q, const rclcpp::Time & timeStamp);
     void publishEEPositions(const Eigen::VectorXd & q);
     void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
     void visualize3DSuperquadric(const int & legIdx,
                                     const Eigen::Vector3d & p_torso);                            
-    // // void visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
 
     std::shared_ptr<switched_model::CustomQuadrupedInterface> interface_; /**< Go2 interface */
     std::shared_ptr<switched_model::CustomQuadrupedVisualizer> visualizer_; /**< Go2 visualizer */
@@ -73,17 +63,28 @@ private:
     double sqCurvY = 2.0;
     double sqCurvZ = 2.0;
 
-    double x_offset_front = 0.20;
-    double x_offset_back = -0.20;
+    double x_offset = 0.20;
+    // double x_offset_back = -0.20;
     double y_offset = 0.025;
     double z_offset = -0.25;
 
     double roll = 0.30; // left/right
     double pitch = 0.0; // front/back
-    double yaw = 0.0; // ??      
+    double yaw = 0.0; // ??   
+    
+    // Callback handle for parameter changes
+    rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr callback_handle_;    
 
-    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr projectionPublisher;
-    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr superquadricPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr FLCloudPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr FRCloudPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr BLCloudPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr BRCloudPublisher;
+
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr FLSuperquadricPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr FRSuperquadricPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr BLSuperquadricPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr BRSuperquadricPublisher;
+
     int marker_counter;
     std::vector<ocs2::Color> feetColorMap_;
 

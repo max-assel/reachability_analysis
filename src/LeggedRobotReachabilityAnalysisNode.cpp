@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, go2Interface, visualizer);
 
 
-    rclcpp::Rate rate(10);
+    rclcpp::Rate rate(100);
     rclcpp::Duration sleepDuration = rclcpp::Duration(rate.period());
 
     rclcpp::Time timeStamp = node->get_clock()->now();

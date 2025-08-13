@@ -97,6 +97,13 @@ def generate_launch_description():
         ]
     )
 
+    rqt_node = Node(
+        package="rqt_reconfigure",
+        executable="rqt_reconfigure",
+        name="rqt_reconfigure",
+        output="screen"
+    )
+
     reachability_analysis_node = launch_ros.actions.Node(
         package="reachability_analysis",
         executable="legged_robot_reachability_analysis",
@@ -123,6 +130,7 @@ def generate_launch_description():
                 declare_description_name,
                 world_to_odom_tf2_node,
                 robot_state_publisher_node, 
+                rqt_node,
                 rviz_node,
                 reachability_analysis_node,
             ]
