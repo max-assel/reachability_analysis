@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>reachability_analysis</name>
   <version>0.0.0</version>
   <description>The reachability_analysis package</description>
@@ -28,20 +28,24 @@
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
   
   <!-- buildtool_depend: dependencies of the build process -->
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>cmake_clang_tools</build_depend>
   <!-- build_depend: dependencies only used in source files -->
   <!-- depend: build, export, and execution dependency -->
     
-  <depend>roslib</depend>
-  <depend>ocs2_quadruped_ros</depend>
+  <depend>rclcpp</depend>
+  <!-- <depend>ocs2_custom_quadruped_interface</depend> -->
+  <depend>ocs2_ros_interfaces</depend>
+  <depend>ocs2_go2_mpc</depend>
+  <!-- <depend>ocs2_quadruped_ros</depend>
   <depend>ocs2_quadruped</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>pinocchio</depend>
-  <depend>std_msgs</depend>
+  <depend>std_msgs</depend> -->
 
   <!-- The export tag contains other, unspecified, tags -->
-  <export>
-    <!-- Other tools can request additional information be placed here -->
-
+  <export>                               
+   <build_type>ament_cmake</build_type>
   </export>
+
 </package>

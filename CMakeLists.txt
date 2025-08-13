@@ -1,123 +1,37 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(reachability_analysis)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+# Cpp standard version
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CATKIN_PACKAGE_DEPENDENCIES
-    roslib
-    ocs2_quadruped
-    ocs2_quadruped_ros
-    dynamic_reconfigure
+# Generate compile_commands.json for clang tools
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(dependencies
+    rclcpp
+    # ocs2_custom_quadruped_interface
+    ocs2_ros_interfaces
+    ocs2_go2_mpc
     )
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-        ${CATKIN_PACKAGE_DEPENDENCIES}
-        )
 
-find_package(Boost REQUIRED COMPONENTS
-        system
-        filesystem
-        )
+# Find ROS2 build system
+find_package(ament_cmake REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
-
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+# Need now, not sure why
+find_package(Boost REQUIRED COMPONENTS 
+              system 
+              filesystem
+              log 
+              log_setup)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
-
-################################################
-## Declare ROS messages, services and actions ##
-################################################
-
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend tag for "message_generation"
-##   * add a build_depend and a exec_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
-##     but can be declared for certainty nonetheless:
-##     * add a exec_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
-
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
-
-################################################
-## Declare ROS dynamic reconfigure parameters ##
-################################################
-
-generate_dynamic_reconfigure_options(
-  cfg/Parameters.cfg
-)
-
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if your package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-    INCLUDE_DIRS
-    include
-    ${EIGEN3_INCLUDE_DIRS}
-    LIBRARIES
-    ${PROJECT_NAME}
-    CATKIN_DEPENDS
-    ${CATKIN_PACKAGE_DEPENDENCIES}
-    DEPENDS
-    Boost
-    pinocchio
-    std_msgs
-)
+# Dependencies
+foreach(Dependency IN ITEMS ${dependencies})
+  find_package(${Dependency} REQUIRED)
+endforeach()
 
 ###########
 ## Build ##
@@ -127,65 +41,58 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
     include
-    ${pinocchio_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
-)
-
-link_directories(
-    ${pinocchio_LIBRARY_DIRS}
 )
 
 # Main library
 add_library(${PROJECT_NAME}
         src/ReachabilityAnalyzer.cpp
-    )
-add_dependencies(${PROJECT_NAME}
-        ${${PROJECT_NAME}_EXPORTED_TARGETS}
-        ${catkin_EXPORTED_TARGETS}
-        )
+)
+ament_target_dependencies(${PROJECT_NAME} 
+	${dependencies}
+)
 target_link_libraries(${PROJECT_NAME}
-        ${catkin_LIBRARIES}
-        ${Boost_LIBRARIES}
-        )
-target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
-
+    ${EIGEN3_INCLUDE_DIRS}
+)
+        
 # reachability analysis node
 add_executable(legged_robot_reachability_analysis
                 src/LeggedRobotReachabilityAnalysisNode.cpp
-                )
-add_dependencies(legged_robot_reachability_analysis
-                        ${PROJECT_NAME}
-                        ${${PROJECT_NAME}_EXPORTED_TARGETS}
-                        ${catkin_EXPORTED_TARGETS}
-                        ${PROJECT_NAME}_gencfg
-                        )
+)
+ament_target_dependencies(legged_robot_reachability_analysis
+	${dependencies}
+)
 target_link_libraries(legged_robot_reachability_analysis
-                        ${PROJECT_NAME}
-                        ${catkin_LIBRARIES}
-                        )
+        ${PROJECT_NAME}
+        )
 
 #############
 ## Install ##
 #############
-
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-        )
-install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
 install(
-        TARGETS
-        legged_robot_reachability_analysis
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include/${PROJECT_NAME}
 )
-install(DIRECTORY launch rviz
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-        )
-#############
-## Testing ##
-#############
+
+install(
+  TARGETS 
+        legged_robot_reachability_analysis
+        DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/ 
+  DESTINATION include/${PROJECT_NAME}
+)
+
+install(DIRECTORY cfg launch rviz
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+ament_export_dependencies(${dependencies})  
+ament_export_include_directories("include/${PROJECT_NAME}")
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_package()
