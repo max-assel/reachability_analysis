@@ -226,12 +226,15 @@
 //     return foundTransition;
 // }
 
-ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node)
+ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
+                                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface)
 {
-    // projectionPublisher = nodeHandle.advertise<visualization_msgs::MarkerArray>("/projections", 1);
-    // superquadricPublisher = nodeHandle.advertise<visualization_msgs::Marker>("/superquadrics", 1);
-    // marker_counter = 0;
-    // feetColorMap_ = {Color::blue, Color::orange, Color::yellow, Color::purple};  // Colors for markers per feet
+    node_ = node;
+    interface_ = interface;
+    projectionPublisher = node_->create_publisher<visualization_msgs::msg::MarkerArray>("/projections", 1);
+    superquadricPublisher = node_->create_publisher<visualization_msgs::msg::Marker>("/superquadrics", 1);
+    marker_counter = 0;
+    feetColorMap_ = {ocs2::Color::blue, ocs2::Color::orange, ocs2::Color::yellow, ocs2::Color::purple};  // Colors for markers per feet
 }
 
 // LeggedRobotInterface & interface, 
@@ -241,99 +244,99 @@ ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node)
 
 void ReachabilityAnalyzer::runReachabilityAnalysis()
 {
-    // // std::cout << "[runReachabilityAnalysis()]" << std::endl;
-    // // int num_projections = 1000;
+    // std::cout << "[runReachabilityAnalysis()]" << std::endl;
+    // int num_projections = 1000;
 
     // const auto& model = interface.getPinocchioInterface().getModel();
     // auto& data = interface.getPinocchioInterface().getData();
 
-    // Eigen::VectorXd q = Eigen::VectorXd::Zero(model.nq);
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(CONFIG_DIM);
     // Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
 
-    // Eigen::Vector3d torso_pose(0.0, 0.0, 0.0);
-    // Eigen::VectorXd defaultState = interface.getInitialState();
+    Eigen::Vector3d torso_pose(0.0, 0.0, 0.0);
+    Eigen::VectorXd defaultState = interface_->getInitialState();
 
-    // // set torso pose
-    // q[0] = torso_pose[0]; 
-    // q[1] = torso_pose[1]; 
-    // q[2] = torso_pose[2];
-    // q[3] = 0.0; 
-    // q[4] = 0.0; 
-    // q[5] = 0.0;
+    // set torso pose
+    q[0] = torso_pose[0]; 
+    q[1] = torso_pose[1]; 
+    q[2] = torso_pose[2];
+    q[3] = 0.0; 
+    q[4] = 0.0; 
+    q[5] = 0.0;
 
-    // // for (int i = 0; i < num_projections; i++)
-    // // {
-    //     // std::cout << "projection " << i << std::endl;
-
-    // // set joint poses
-    // for (int j = 6; j < model.nq; j++)
+    // for (int i = 0; i < num_projections; i++)
     // {
-    //     double min_posn = -1.0;
-    //     double max_posn = -1.0;
+        // std::cout << "projection " << i << std::endl;
 
-    //     if (volumeFlag == "full")
-    //     {
-    //         min_posn = model.lowerPositionLimit[j];
-    //         max_posn = model.upperPositionLimit[j];
+    // set joint poses
+    for (int j = 6; j < CONFIG_DIM; j++)
+    {
+        double min_posn = -1.0;
+        double max_posn = -1.0;
 
-    //         std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+        // if (volumeFlag == "full")
+        // {
+        min_posn = interface_->modelSettings().lowerJointLimits_[j];
+        max_posn = interface_->modelSettings().upperJointLimits_[j];
 
-    //         // randomly sample with limits
-    //         q[j] = joint_distribution(generator);            
-    //     } else if (volumeFlag == "conservative")
-    //     {
-    //         if (j == 6 || j == 9 || j == 12 || j == 15) // hip
-    //         {
-    //             // Hip position limits: [-0.863, 0.863], default position: 0.0
-    //             min_posn = -0.2; // -0.430;
-    //             max_posn = 0.2; // 0.430;
-    //         } else if (j == 7 || j == 10 || j == 13 || j == 16) // thigh
-    //         {
-    //             // Thigh position limits: [-0.686, 4.501], default position: 0.72
-    //             min_posn = 0.5;
-    //             max_posn = 1.0; // 1.44;
-    //         } else if (j == 8 || j == 11 || j == 14 || j == 17) // calf
-    //         {
-    //             // Calf position limits: [-2.818, -0.888], default position: -1.44
-    //             min_posn = -1.88;
-    //             max_posn = -1.00;
-    //         }
+        std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
 
-    //         std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+        // randomly sample with limits
+        q[j] = joint_distribution(generator);            
+        // } else if (volumeFlag == "conservative")
+        // {
+        //     if (j == 6 || j == 9 || j == 12 || j == 15) // hip
+        //     {
+        //         // Hip position limits: [-0.863, 0.863], default position: 0.0
+        //         min_posn = -0.2; // -0.430;
+        //         max_posn = 0.2; // 0.430;
+        //     } else if (j == 7 || j == 10 || j == 13 || j == 16) // thigh
+        //     {
+        //         // Thigh position limits: [-0.686, 4.501], default position: 0.72
+        //         min_posn = 0.5;
+        //         max_posn = 1.0; // 1.44;
+        //     } else if (j == 8 || j == 11 || j == 14 || j == 17) // calf
+        //     {
+        //         // Calf position limits: [-2.818, -0.888], default position: -1.44
+        //         min_posn = -1.88;
+        //         max_posn = -1.00;
+        //     }
 
-    //         // randomly sample with limits
-    //         q[j] = joint_distribution(generator);    
-    //     } else if (volumeFlag == "manual")
-    //     {
-    //         if (j == 6)
-    //             q[j] = FL_hip_manual_pos;
-    //         else if (j == 7)
-    //             q[j] = FL_thigh_manual_pos;
-    //         else if (j == 8)
-    //             q[j] = FL_calf_manual_pos;
-    //         else if (j == 9)
-    //             q[j] = FR_hip_manual_pos;
-    //         else if (j == 10)
-    //             q[j] = FR_thigh_manual_pos;
-    //         else if (j == 11)
-    //             q[j] = FR_calf_manual_pos;
-    //         else if (j == 12)
-    //             q[j] = BL_hip_manual_pos;
-    //         else if (j == 13)
-    //             q[j] = BL_thigh_manual_pos;
-    //         else if (j == 14)
-    //             q[j] = BL_calf_manual_pos;
-    //         else if (j == 15)
-    //             q[j] = BR_hip_manual_pos;
-    //         else if (j == 16)
-    //             q[j] = BR_thigh_manual_pos;
-    //         else if (j == 17)
-    //             q[j] = BR_calf_manual_pos;                
-    //     } else
-    //     {
-    //         throw std::runtime_error("volume flag '" + volumeFlag + "' is not identified");
-    //     }
-    // }    
+        //     std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+
+        //     // randomly sample with limits
+        //     q[j] = joint_distribution(generator);    
+        // } else if (volumeFlag == "manual")
+        // {
+        //     if (j == 6)
+        //         q[j] = FL_hip_manual_pos;
+        //     else if (j == 7)
+        //         q[j] = FL_thigh_manual_pos;
+        //     else if (j == 8)
+        //         q[j] = FL_calf_manual_pos;
+        //     else if (j == 9)
+        //         q[j] = FR_hip_manual_pos;
+        //     else if (j == 10)
+        //         q[j] = FR_thigh_manual_pos;
+        //     else if (j == 11)
+        //         q[j] = FR_calf_manual_pos;
+        //     else if (j == 12)
+        //         q[j] = BL_hip_manual_pos;
+        //     else if (j == 13)
+        //         q[j] = BL_thigh_manual_pos;
+        //     else if (j == 14)
+        //         q[j] = BL_calf_manual_pos;
+        //     else if (j == 15)
+        //         q[j] = BR_hip_manual_pos;
+        //     else if (j == 16)
+        //         q[j] = BR_thigh_manual_pos;
+        //     else if (j == 17)
+        //         q[j] = BR_calf_manual_pos;                
+        // } else
+        // {
+        //     throw std::runtime_error("volume flag '" + volumeFlag + "' is not identified");
+        // }
+    }    
 
     // // update model based on current configuration
     // pinocchio::forwardKinematics(model, data, q, v);

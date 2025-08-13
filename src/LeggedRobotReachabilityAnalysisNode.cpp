@@ -6,7 +6,6 @@
 
 // #include "ocs2_quadruped_ros/visualization/LeggedRobotVisualizer.h"
 
-// #include <ocs2_custom_quadruped_interface/CustomQuadrupedInterface.h>
 #include <ocs2_mpc/MPC_Settings.h>
 
 #include <ocs2_go2_mpc/Go2Interface.h>
@@ -60,7 +59,7 @@ int main(int argc, char** argv)
                                                         mpcSettings.mpcDesiredFrequency_);
     leggedRobotDummySimulator.subscribeObservers({visualizer});
 
-    ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node);
+    ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, go2Interface);
 
     // dynamic_reconfigure::Server<reachability_analysis::ParametersConfig> server;
     // dynamic_reconfigure::Server<reachability_analysis::ParametersConfig>::CallbackType serverCallback;

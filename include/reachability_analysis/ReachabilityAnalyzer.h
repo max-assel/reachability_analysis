@@ -2,16 +2,20 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-// #include <random>
+#include <random>
 
 // #include <ocs2_quadruped/LeggedRobotInterface.h>
-// #include "ocs2_quadruped_ros/visualization/LeggedRobotVisualizer.h"
+#include <ocs2_custom_quadruped_interface/CustomQuadrupedVisualizer.h>
 // #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 
-// #include <Eigen/Core>
-// #include <Eigen/Geometry>
+#include <ocs2_custom_quadruped_interface/CustomQuadrupedInterface.h>
 
-// #include <visualization_msgs/MarkerArray.h>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+
 // #include <geometry_msgs/Point.h>
 
 // #include <dynamic_reconfigure/server.h>
@@ -20,10 +24,13 @@
 // namespace ocs2 {
 // namespace quadruped {
 
+static constexpr size_t CONFIG_DIM = 18;
+
 class ReachabilityAnalyzer
 {
 public:
-    ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node);
+    ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
+                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface);
     // void runProjectionAnalysis(LeggedRobotInterface & interface, 
     //                             std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
     //                             PinocchioEndEffectorKinematics & endEffectorKinematics);
@@ -51,23 +58,27 @@ private:
     //                                 const Eigen::Vector3d & p_torso);                            
     // // void visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
 
-    // double sqCurvX = 0.5;
-    // double sqCurvY = 0.5;
-    // double sqCurvZ = 0.5;
+    std::shared_ptr<switched_model::CustomQuadrupedInterface> interface_; /**< Go2 interface */
 
-    // double sqDimX = 0.175;
-    // double sqDimY = 0.15;
-    // double sqDimZ = 0.30;
+    rclcpp::Node::SharedPtr node_;
 
-    // double x_offset_front = 0.0;
-    // double x_offset_back = 0.0;
-    // double y_offset_left = 0.0;
-    // double y_offset_right = 0.0;
-    // double z_offset = 0.0;
+    double sqCurvX = 0.5;
+    double sqCurvY = 0.5;
+    double sqCurvZ = 0.5;
 
-    // double roll = 0.0; // left/right
-    // double pitch = 0.0; // front/back
-    // double yaw = 0.0; // ??
+    double sqDimX = 0.175;
+    double sqDimY = 0.15;
+    double sqDimZ = 0.30;
+
+    double x_offset_front = 0.0;
+    double x_offset_back = 0.0;
+    double y_offset_left = 0.0;
+    double y_offset_right = 0.0;
+    double z_offset = 0.0;
+
+    double roll = 0.0; // left/right
+    double pitch = 0.0; // front/back
+    double yaw = 0.0; // ??
 
     // double FL_hip_manual_pos = 0.0;
     // double FL_thigh_manual_pos = 0.0;
@@ -85,12 +96,12 @@ private:
     // double BR_thigh_manual_pos = 0.0;
     // double BR_calf_manual_pos = 0.0;        
 
-    // ros::Publisher projectionPublisher;
-    // ros::Publisher superquadricPublisher;
-    // int marker_counter;
-    // std::vector<Color> feetColorMap_;
+    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr projectionPublisher;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr superquadricPublisher;
+    int marker_counter;
+    std::vector<ocs2::Color> feetColorMap_;
 
-    // std::default_random_engine generator;
+    std::default_random_engine generator;
 
 };
 
