@@ -43,7 +43,7 @@ public:
     // PinocchioEndEffectorKinematics & endEffectorKinematics,
     // const std::string & volumeFlag
     
-    void runReachabilityAnalysis();
+    void runReachabilityAnalysis(const rclcpp::Time & timeStamp);
     // void reconfigureCallback(reachability_analysis::ParametersConfig &config, uint32_t level);
 
 private:
@@ -53,7 +53,7 @@ private:
     // //                     LeggedRobotInterface & interface,
     // //                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
     // //                     bool final);
-    void publishState(const Eigen::VectorXd & q);
+    void publishState(const Eigen::VectorXd & q, const rclcpp::Time & timeStamp);
     void publishEEPositions(const Eigen::VectorXd & q);
     void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
     void visualize3DSuperquadric(const int & legIdx,

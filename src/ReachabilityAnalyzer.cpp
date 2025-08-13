@@ -244,9 +244,9 @@ ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
 // PinocchioEndEffectorKinematics & endEffectorKinematics,
 // const std::string & volumeFlag
 
-void ReachabilityAnalyzer::runReachabilityAnalysis()
+void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStamp)
 {
-    // std::cout << "[runReachabilityAnalysis()]" << std::endl;
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "[runReachabilityAnalysis()]");
     // int num_projections = 1000;
 
     // const auto& model = interface.getPinocchioInterface().getModel();
@@ -346,7 +346,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
     // pinocchio::updateFramePlacements(model, data);
 
     publishEEPositions(q);       
-    publishState(q);
+    publishState(q, timeStamp);
 
     // fit superquadrics to dataset
     visualize3DSuperquadrics(torso_pose);
@@ -354,8 +354,9 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
     return;
 }
 
-void ReachabilityAnalyzer::publishState(const Eigen::VectorXd & q)
+void ReachabilityAnalyzer::publishState(const Eigen::VectorXd & q, const rclcpp::Time & timeStamp)
 {
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "[publishState()]");
     Eigen::VectorXd x = Eigen::VectorXd::Zero(q.size() + 6);
     x.block(6, 0, 18, 1) = q;
 
@@ -364,10 +365,12 @@ void ReachabilityAnalyzer::publishState(const Eigen::VectorXd & q)
     ocs2::SystemObservation sol;
     sol.state = x;
     sol.input = Eigen::VectorXd::Zero(q.size());
-    const auto timeStamp = node_->get_clock()->now();
+    // rclcpp::Time timeStamp = node_->get_clock()->now();
+
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "  timeStamp: " << timeStamp.seconds() << " seconds");
 
     visualizer_->publishObservation(timeStamp, sol);
-    // rclcpp::Rate(real_time_factor * 1.0 / interface_.getRollout().settings().timeStep).sleep();
+    // rclcpp::Rate(10).sleep();
 }
 
 void ReachabilityAnalyzer::publishEEPositions(const Eigen::VectorXd & q)

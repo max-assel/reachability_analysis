@@ -18,104 +18,112 @@ from launch.substitutions import Command, LaunchConfiguration
 
 def generate_launch_description():
 
-  #######################
-  # Package Directories #
-  #######################
+    #######################
+    # Package Directories #
+    #######################
 
-  go2_description_path = get_package_share_directory("go2_description")
-  go2_interface_path = get_package_share_directory("go2_interface")
-  mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
+    go2_description_path = get_package_share_directory("go2_description")
+    go2_interface_path = get_package_share_directory("go2_interface")
+    mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
 
-  ####################
-  # Launch Arguments #
-  ####################
-  urdfFile = os.path.join(go2_description_path, "urdf/go2_simplified.urdf")
-  taskFile = os.path.join(mmp_quadruped_path, "config/mpc/task.info")
-  frameFile = os.path.join(go2_interface_path, "config/frame_declaration.info")
+    ####################
+    # Launch Arguments #
+    ####################
+    urdfFile = os.path.join(go2_description_path, "urdf/go2_simplified.urdf")
+    taskFile = os.path.join(mmp_quadruped_path, "config/mpc/task.info")
+    frameFile = os.path.join(go2_interface_path, "config/frame_declaration.info")
 
-  # Read the URDF file content
-  with open(urdfFile, 'r') as infp:
-      robot_desc = infp.read()    
+    declare_description_name = DeclareLaunchArgument(
+            "description_name",
+            default_value=urdfFile
+    )
 
-  ##########
-  ## Node ##
-  odom_to_base_tf2_cmd = Node(
-      package="tf2_ros",
-      executable="static_transform_publisher",
-      name="odom_to_base_tf2",
-      output="screen",
-      arguments=[
-          "0",
-          "0",
-          "0",
-          "0",
-          "0",
-          "0",
-          "odom",
-          "base"
-      ],
-      parameters=[
-          {
-            "use_sim_time": True,
-          }
-      ]
-  )
-
-  rviz_node = launch_ros.actions.Node(
-      package="rviz2",
-      executable="rviz2",
-      name="rviz2",
-      output="screen",
-      arguments=[
-          "-d",
-          os.path.join(
-              go2_interface_path, "rviz", "reachability.rviz",
-          )
-      ],
-      parameters=[
-          {
-            "use_sim_time": True,
-          }
-      ]
-  )
-
-  # Subscribe to joint states and publish TFs
-  robot_state_publisher_node = launch_ros.actions.Node(
-      package="robot_state_publisher",
-      executable="robot_state_publisher",
-      name='robot_state_publisher',
-      output='screen',
-      parameters=[
-        {"robot_description": robot_desc},
-        {"publish_frequency": 200.0},
-        {"ignore_timestamp": True},
-        {'use_sim_time': True},
-      ],
-  )
-
-  reachability_analysis_node = launch_ros.actions.Node(
-      package="reachability_analysis",
-      executable="legged_robot_reachability_analysis",
-      name="legged_robot_reachability_analysis",
-      output="screen",
-      parameters=[
-          {
-            "use_sim_time": True,
-            'taskFile': taskFile,
-            'frameFile': frameFile,
-            'urdfFile': urdfFile,
-          }
-      ]
-  )
-
-  ###########################
-  # Full Launch Description #
-  ###########################
-  return LaunchDescription(
-        [
-          odom_to_base_tf2_cmd,
-          robot_state_publisher_node, 
-          rviz_node,
-          reachability_analysis_node,
+    ##########
+    ## Node ##
+    ##########
+    world_to_odom_tf2_node = launch_ros.actions.Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="world_to_odom_tf2",
+        output="screen",
+        arguments=[
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "world",
+            "odom"
+        ],
+        parameters=[
+            {
+                "use_sim_time": True,
+            }
         ]
-  )
+    )
+
+    rviz_node = launch_ros.actions.Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=[
+            "-d",
+            os.path.join(
+                go2_interface_path, "rviz", "reachability.rviz",
+            )
+        ],
+        parameters=[
+            {
+                "use_sim_time": True,
+            }
+        ]
+    )
+
+    # Subscribe to joint states and publish TFs
+    robot_state_publisher_node = launch_ros.actions.Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name='robot_state_publisher',
+        output='screen',
+        arguments=[LaunchConfiguration("description_name")],
+        parameters=[
+            {
+                "use_sim_time": True,
+                "publish_frequency": 200.0,
+                "ignore_timestamp": True
+            }
+        ]
+    )
+
+    reachability_analysis_node = launch_ros.actions.Node(
+        package="reachability_analysis",
+        executable="legged_robot_reachability_analysis",
+        name="legged_robot_reachability_analysis",
+        output="screen",
+        parameters=[
+            {
+                "use_sim_time": True,
+                'taskFile': taskFile,
+                'frameFile': frameFile,
+                'urdfFile': urdfFile,
+            }
+        ]
+    )
+
+    decl_sim_time = launch_ros.actions.SetParameter(name='use_sim_time', value=True)
+
+    ###########################
+    # Full Launch Description #
+    ###########################
+    return LaunchDescription(
+            [
+                decl_sim_time,
+                declare_description_name,
+                world_to_odom_tf2_node,
+                robot_state_publisher_node, 
+                rviz_node,
+                reachability_analysis_node,
+            ]
+    )

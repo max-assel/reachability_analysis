@@ -61,29 +61,22 @@ int main(int argc, char** argv)
 
     ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, go2Interface, visualizer);
 
-    // dynamic_reconfigure::Server<reachability_analysis::ParametersConfig> server;
-    // dynamic_reconfigure::Server<reachability_analysis::ParametersConfig>::CallbackType serverCallback;
-
-    // serverCallback = boost::bind(&ReachabilityAnalyzer::reconfigureCallback, reachabilityAnalyzer, _1, _2);
-    // server.setCallback(serverCallback);
-
-    // endEffectorKinematics.setPinocchioInterface(interface.getPinocchioInterface());
 
     rclcpp::Rate rate(10);
+    rclcpp::Duration sleepDuration = rclcpp::Duration(rate.period());
+
+    rclcpp::Time timeStamp = node->get_clock()->now();
 
     while (rclcpp::ok())
     {
-        rclcpp::spin_some(node);
-
-        // interface,
-        // go2Visualizer,
-        // endEffectorKinematics,
-        // volumeFlag
-        reachabilityAnalyzer->runReachabilityAnalysis();        
+        reachabilityAnalyzer->runReachabilityAnalysis(timeStamp);        
         rate.sleep();
+        timeStamp += sleepDuration;
+        rclcpp::spin_some(node);
     }
 
     // delete reachabilityAnalyzer;
 
+    rclcpp::shutdown();
     return 0;
 }
