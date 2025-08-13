@@ -8,6 +8,8 @@
 #include <ocs2_custom_quadruped_interface/CustomQuadrupedVisualizer.h>
 // #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 
+#include <ocs2_ros_interfaces/visualization/VisualizationHelpers.h>
+
 #include <ocs2_custom_quadruped_interface/CustomQuadrupedInterface.h>
 
 #include <Eigen/Core>
@@ -31,10 +33,7 @@ class ReachabilityAnalyzer
 public:
     ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
                             std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface);
-    // void runProjectionAnalysis(LeggedRobotInterface & interface, 
-    //                             std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-    //                             PinocchioEndEffectorKinematics & endEffectorKinematics);
-    
+
     // LeggedRobotInterface & interface, 
     // std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
     // PinocchioEndEffectorKinematics & endEffectorKinematics,
@@ -51,8 +50,7 @@ private:
     // //                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
     // //                     bool final);
     // void publishState(LeggedRobotInterface & interface, Eigen::VectorXd & x, std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer);
-    // void publishEEPositions(Eigen::VectorXd & q, 
-    //                         PinocchioEndEffectorKinematics & endEffectorKinematics);
+    void publishEEPositions(Eigen::VectorXd & q);
     // void visualize3DSuperquadrics(const Eigen::Vector3d & p_torso);
     // void visualize3DSuperquadric(const int & legIdx,
     //                                 const Eigen::Vector3d & p_torso);                            
@@ -78,23 +76,7 @@ private:
 
     double roll = 0.0; // left/right
     double pitch = 0.0; // front/back
-    double yaw = 0.0; // ??
-
-    // double FL_hip_manual_pos = 0.0;
-    // double FL_thigh_manual_pos = 0.0;
-    // double FL_calf_manual_pos = 0.0;
-
-    // double FR_hip_manual_pos = 0.0;
-    // double FR_thigh_manual_pos = 0.0;
-    // double FR_calf_manual_pos = 0.0;
-
-    // double BL_hip_manual_pos = 0.0;
-    // double BL_thigh_manual_pos = 0.0;
-    // double BL_calf_manual_pos = 0.0;
-
-    // double BR_hip_manual_pos = 0.0;
-    // double BR_thigh_manual_pos = 0.0;
-    // double BR_calf_manual_pos = 0.0;        
+    double yaw = 0.0; // ??      
 
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr projectionPublisher;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr superquadricPublisher;

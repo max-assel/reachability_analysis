@@ -343,7 +343,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
     // pinocchio::computeJointJacobians(model, data);        
     // pinocchio::updateFramePlacements(model, data);
 
-    // publishEEPositions(q, endEffectorKinematics);       
+    publishEEPositions(q);       
     // publishState(interface, q, leggedRobotVisualizer);
 
     // // fit superquadrics to dataset
@@ -351,61 +351,6 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
 
     return;
 }
-
-// void ReachabilityAnalyzer::runProjectionAnalysis(LeggedRobotInterface & interface, 
-//                                                     std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer,
-//                                                     PinocchioEndEffectorKinematics & endEffectorKinematics)
-// {
-//     int num_projections = 10000;
-
-//     Eigen::VectorXd q = Eigen::VectorXd::Zero(18);
-//     Eigen::VectorXd v = Eigen::VectorXd::Zero(18);
-
-//     int num_sample_iterations = 25;
-
-//     Eigen::Vector3d torso_pose(0.0, 0.0, 0.30);
-//     Eigen::VectorXd defaultState = interface.getInitialState();
-
-//     std::default_random_engine generator;
-//     std::uniform_real_distribution<double> joint_distribution(-M_PI/8, M_PI/8);
-    
-//     bool foundTransition = false;
-
-//     for (int i = 0; i < num_projections; i++)
-//     {
-//         // std::cout << "projection " << i << std::endl;
-
-//         Eigen::VectorXd new_q = q;
-
-//         new_q[0] = torso_pose[0]; new_q[1] = torso_pose[1]; new_q[2] = torso_pose[2];
-//         new_q[3] = 0.0; new_q[4] = 0.0; new_q[5] = 0.0;
-
-//         new_q.block(6, 0, 12, 1) = defaultState.block(12, 0, 12, 1);
-
-//         // randomly sample leg joints
-
-//         for (int j = 0; j < 12; j++)
-//             new_q[6 + j] += joint_distribution(generator);
-
-//         foundTransition = IKProjection(new_q, v, torso_pose, interface, leggedRobotVisualizer, false);
-
-//         if (foundTransition)
-//             publishEEPositions(new_q, endEffectorKinematics);       
-//         visualizeSuperquadric(leggedRobotVisualizer);
-//     }
-
-//     Eigen::VectorXd new_q = q;
-
-//     new_q[0] = torso_pose[0]; new_q[1] = torso_pose[1]; new_q[2] = torso_pose[2];
-//     new_q[3] = 0.0; new_q[4] = 0.0; new_q[5] = 0.0;
-
-//     new_q.block(6, 0, 12, 1) = defaultState.block(12, 0, 12, 1);
-
-//     foundTransition = IKProjection(new_q, v, torso_pose, interface, leggedRobotVisualizer, true);
-
-//     publishState(interface, new_q, leggedRobotVisualizer);
-
-// }
 
 // void ReachabilityAnalyzer::publishState(LeggedRobotInterface & interface, Eigen::VectorXd & q, 
 //                                              std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer)
@@ -424,86 +369,92 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
 //     ros::Rate(real_time_factor * 1.0 / interface.getRollout().settings().timeStep).sleep();
 // }
 
-// void ReachabilityAnalyzer::publishEEPositions(Eigen::VectorXd & q, 
-//                                             PinocchioEndEffectorKinematics & endEffectorKinematics)
-// {
-//     Eigen::VectorXd x = Eigen::VectorXd::Zero(q.size() + 6);
-//     x.block(6, 0, 18, 1) = q;
+void ReachabilityAnalyzer::publishEEPositions(Eigen::VectorXd & q)
+{
+    assert(q.size() == CONFIG_DIM && "q must have size 18");
 
-//     visualization_msgs::MarkerArray markerArray;
-//     const auto feetPositions = endEffectorKinematics.getPosition(x);
+    // Eigen::VectorXd x = Eigen::VectorXd::Zero(q.size() + 6);
+    // x.block(6, 0, 18, 1) = q;
 
-//     for (int leg_idx = 0; leg_idx < 4; leg_idx++)
-//     {
-//         // std::cout << "  footPosition: " << feetPositions[leg_idx] << std::endl;
+    visualization_msgs::msg::MarkerArray markerArray;
+    // const auto feetPositions = endEffectorKinematics.getPosition(x);
 
-//         // prune configurations with potential for self-collision
-//         if (leg_idx == 0) // FL
-//         {
-//             // if (feetPositions[leg_idx][0] <= 0.0 || feetPositions[leg_idx][1] <= 0.0)
-//             //     continue;
-//         } else
-//         {
-//             continue;
-//         }
+    for (int leg_idx = 0; leg_idx < 4; leg_idx++)
+    {
+        const switched_model::base_coordinate_t basePose = q.head(6);
+        const switched_model::joint_coordinate_t qJoints = q.tail(12);
+
+        Eigen::Vector3d foot_posn_world = interface_->getKinematicModel().footPositionInOriginFrame(leg_idx, basePose, qJoints);
+
+        // std::cout << "  footPosition: " << feetPositions[leg_idx] << std::endl;
+
+        // prune configurations with potential for self-collision
+        // if (leg_idx == 0) // FL
+        // {
+        //     // if (feetPositions[leg_idx][0] <= 0.0 || feetPositions[leg_idx][1] <= 0.0)
+        //     //     continue;
+        // } else
+        // {
+        //     continue;
+        // }
         
-//         // if (leg_idx == 1) // FR
-//         // {
-//         //     if (feetPositions[leg_idx][0] <= 0.0 || feetPositions[leg_idx][1] >= 0.0)
-//         //         continue;
-//         // }
+        // if (leg_idx == 1) // FR
+        // {
+        //     if (feetPositions[leg_idx][0] <= 0.0 || feetPositions[leg_idx][1] >= 0.0)
+        //         continue;
+        // }
         
-//         // if (leg_idx == 2) // BL
-//         // {
-//         //     if (feetPositions[leg_idx][0] >= 0.0 || feetPositions[leg_idx][1] <= 0.0)
-//         //         continue;
-//         // }
+        // if (leg_idx == 2) // BL
+        // {
+        //     if (feetPositions[leg_idx][0] >= 0.0 || feetPositions[leg_idx][1] <= 0.0)
+        //         continue;
+        // }
 
-//         // if (leg_idx == 3) // BR
-//         // {
-//         //     if (feetPositions[leg_idx][0] >= 0.0 || feetPositions[leg_idx][1] >= 0.0)
-//         //         continue;
-//         // }
+        // if (leg_idx == 3) // BR
+        // {
+        //     if (feetPositions[leg_idx][0] >= 0.0 || feetPositions[leg_idx][1] >= 0.0)
+        //         continue;
+        // }
 
-//         // prune ee positions with z >= 0.0
-//         if (feetPositions[leg_idx][2] >= 0.0)
-//             continue;
+        // prune ee positions with z >= 0.0
+        // if (feetPositions[leg_idx][2] >= 0.0)
+        //     continue;
 
-//         visualization_msgs::Marker marker;
-//         marker.header.frame_id = "odom";
-//         marker.header.stamp = ros::Time();
-//         marker.ns = "projections";
-//         marker.id = marker_counter++;
-//         marker.type = visualization_msgs::Marker::SPHERE;
-//         marker.action = visualization_msgs::Marker::ADD;
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = "odom";
+        marker.header.stamp = node_->get_clock()->now();
+        marker.ns = "projections";
+        marker.id = marker_counter++;
+        marker.type = visualization_msgs::msg::Marker::SPHERE;
+        marker.action = visualization_msgs::msg::Marker::ADD;
 
-//         // std::cout << "  marker.id: " << marker.id << std::endl;
+        // std::cout << "  marker.id: " << marker.id << std::endl;
 
-//         marker.pose.position.x = feetPositions[leg_idx][0];
-//         marker.pose.position.y = feetPositions[leg_idx][1];
-//         marker.pose.position.z = feetPositions[leg_idx][2];
-//         marker.pose.orientation.x = 0.0;
-//         marker.pose.orientation.y = 0.0;
-//         marker.pose.orientation.z = 0.0;
-//         marker.pose.orientation.w = 1.0;
+        marker.pose.position.x = foot_posn_world[0];
+        marker.pose.position.y = foot_posn_world[1];
+        marker.pose.position.z = foot_posn_world[2];
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
 
-//         // std::cout << "  marker.pose: " << marker.pose << std::endl;
+        // std::cout << "  marker.pose: " << marker.pose << std::endl;
 
-//         marker.scale.x = 0.01; 
-//         marker.scale.y = 0.01;
-//         marker.scale.z = 0.01;
-//         marker.color = getColor(feetColorMap_[leg_idx]);
-//         marker.color.a = 1.0;
-//         // marker.color.r = 0.0;
-//         // marker.color.g = 1.0;
-//         // marker.color.b = 0.0;
-//         // std::cout << "  pre-add" << std::endl;
-//         markerArray.markers.push_back(marker); // [marker.id] = 
-//         // std::cout << "  post-add" << std::endl;
-//     }
-//     projectionPublisher.publish(markerArray);
-//     // ros::Duration(0.1).sleep();
-// }
+        marker.scale.x = 0.01; 
+        marker.scale.y = 0.01;
+        marker.scale.z = 0.01;
+        marker.color = ocs2::getColor(feetColorMap_[leg_idx]);
+        marker.color.a = 1.0;
+        // marker.color.r = 0.0;
+        // marker.color.g = 1.0;
+        // marker.color.b = 0.0;
+        // std::cout << "  pre-add" << std::endl;
+        markerArray.markers.push_back(marker); // [marker.id] = 
+        // std::cout << "  post-add" << std::endl;
+    }
+    projectionPublisher->publish(markerArray);
+    // ros::Duration(0.1).sleep();
+}
 
 // int signum(double value)
 // {
@@ -560,13 +511,13 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
 
 //     Eigen::Quaterniond q = ocs2::getQuaternionFromEulerAnglesZyx(sqOrientationZyx);
 
-//     visualization_msgs::Marker marker;
+//     visualization_msgs::msg::Marker marker;
 //     marker.header.frame_id = "odom";
 //     marker.header.stamp = ros::Time();
 //     marker.ns = "superquadric";
 //     marker.id = legIdx;
-//     marker.type = visualization_msgs::Marker::TRIANGLE_LIST; // visualization_msgs::Marker::LINE_STRIP;
-//     marker.action = visualization_msgs::Marker::ADD;
+//     marker.type = visualization_msgs::msg::Marker::TRIANGLE_LIST; // visualization_msgs::msg::Marker::LINE_STRIP;
+//     marker.action = visualization_msgs::msg::Marker::ADD;
 //     marker.pose.position.x = p_torso[0];
 //     marker.pose.position.y = p_torso[1];
 //     marker.pose.position.z = p_torso[2];
@@ -681,7 +632,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
 
 // void ReachabilityAnalyzer::visualizeSuperquadric(std::shared_ptr<LeggedRobotVisualizer> & leggedRobotVisualizer)
 // {
-//     visualization_msgs::MarkerArray markerArray;
+//     visualization_msgs::msg::MarkerArray markerArray;
 
 //     // order: FL, FR, BL, BR
 //     std::vector<double> x0s = {x_offset_front, x_offset_front, x_offset_back, x_offset_back};
@@ -695,13 +646,13 @@ void ReachabilityAnalyzer::runReachabilityAnalysis()
 //         double theta_max = M_PI;
 //         double delta_theta = (theta_max - theta_min) / num_points;
 
-//         visualization_msgs::Marker marker;
+//         visualization_msgs::msg::Marker marker;
 //         marker.header.frame_id = "odom";
 //         marker.header.stamp = ros::Time();
 //         marker.ns = "superquadric";
 //         marker.id = leg_idx;
-//         marker.type = visualization_msgs::Marker::LINE_STRIP;
-//         marker.action = visualization_msgs::Marker::ADD;
+//         marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
+//         marker.action = visualization_msgs::msg::Marker::ADD;
 
 //         std::cout << "  marker.id: " << marker.id << std::endl;
 
