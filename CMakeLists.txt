@@ -85,7 +85,7 @@ install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 
-install(DIRECTORY cfg launch rviz
+install(DIRECTORY launch rviz
   DESTINATION share/${PROJECT_NAME}/
 )
 

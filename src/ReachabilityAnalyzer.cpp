@@ -28,31 +28,31 @@ ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
     feetColorMap_ = {ocs2::Color::blue, ocs2::Color::orange, ocs2::Color::yellow, ocs2::Color::purple};  // Colors for markers per feet
 
 
-    node->declare_parameter("sqDimX", 0.0);
-    node->declare_parameter("sqDimY", 0.0);
-    node->declare_parameter("sqDimZ", 0.0);
-    node->declare_parameter("sqCurvX", 2.0);
-    node->declare_parameter("sqCurvY", 2.0);
-    node->declare_parameter("sqCurvZ", 2.0);
-    node->declare_parameter("x_offset", 0.20);
-    node->declare_parameter("y_offset", 0.025);
-    node->declare_parameter("z_offset", -0.25);
-    node->declare_parameter("roll", 0.30);
-    node->declare_parameter("pitch", 0.0);
-    node->declare_parameter("yaw", 0.0);
+    node->declare_parameter("sqDimX", sqDimX);
+    node->declare_parameter("sqDimY", sqDimY);
+    node->declare_parameter("sqDimZ", sqDimZ);
+    node->declare_parameter("sqCurvX", sqCurvX);
+    node->declare_parameter("sqCurvY", sqCurvY);
+    node->declare_parameter("sqCurvZ", sqCurvZ);
+    node->declare_parameter("x_offset", x_offset);
+    node->declare_parameter("y_offset", y_offset);
+    node->declare_parameter("z_offset", z_offset);
+    node->declare_parameter("roll", roll);
+    node->declare_parameter("pitch", pitch);
+    node->declare_parameter("yaw", yaw);
 
-    node->get_parameter("sqDimX", sqDimX);
-    node->get_parameter("sqDimY", sqDimY);
-    node->get_parameter("sqDimZ", sqDimZ);
-    node->get_parameter("sqCurvX", sqCurvX);
-    node->get_parameter("sqCurvY", sqCurvY);
-    node->get_parameter("sqCurvZ", sqCurvZ);
-    node->get_parameter("x_offset", x_offset);
-    node->get_parameter("y_offset", y_offset);
-    node->get_parameter("z_offset", z_offset);
-    node->get_parameter("roll", roll);
-    node->get_parameter("pitch", pitch);
-    node->get_parameter("yaw", yaw);
+    // node->get_parameter("sqDimX", sqDimX);
+    // node->get_parameter("sqDimY", sqDimY);
+    // node->get_parameter("sqDimZ", sqDimZ);
+    // node->get_parameter("sqCurvX", sqCurvX);
+    // node->get_parameter("sqCurvY", sqCurvY);
+    // node->get_parameter("sqCurvZ", sqCurvZ);
+    // node->get_parameter("x_offset", x_offset);
+    // node->get_parameter("y_offset", y_offset);
+    // node->get_parameter("z_offset", z_offset);
+    // node->get_parameter("roll", roll);
+    // node->get_parameter("pitch", pitch);
+    // node->get_parameter("yaw", yaw);
 
     callback_handle_ = node_->add_on_set_parameters_callback(
         std::bind(&ReachabilityAnalyzer::parametersCallback, this, std::placeholders::_1));
@@ -262,6 +262,18 @@ void ReachabilityAnalyzer::visualize3DSuperquadrics(const Eigen::Vector3d & p_to
     }
 }
 
+void superquadricHelper(geometry_msgs::msg::Point & p,
+                        const Eigen::Vector3d & sqCenter,
+                        const Eigen::Vector3d & sqDims,
+                        const Eigen::Vector3d & sqCurvature,
+                        const double & eta, 
+                        const double & w)
+{
+    p.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
+    p.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(std::sin(w)) * std::pow(std::abs(std::sin(w)), 2.0 / sqCurvature[1]);
+    p.z = sqCenter[2] + sqDims[2] * sign(std::sin(eta)) * std::pow(std::abs(std::sin(eta)), 2.0 / sqCurvature[2]);
+}
+
 void ReachabilityAnalyzer::visualize3DSuperquadric(const int & legIdx,
                                                     const Eigen::Vector3d & p_torso)
 {
@@ -342,30 +354,22 @@ void ReachabilityAnalyzer::visualize3DSuperquadric(const int & legIdx,
             geometry_msgs::msg::Point p1;
             double eta = etamin + (i-1) * deta;
             double w   = wmin + (j-1) * dw;            
-            p1.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-            p1.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-            p1.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+            superquadricHelper(p1, sqCenter, sqDims, sqCurvature, eta, w);
 
             geometry_msgs::msg::Point p2;
             eta = etamin + ((i+1)-1) * deta;
             w = wmin + (j-1) * dw;            
-            p2.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-            p2.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-            p2.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+            superquadricHelper(p2, sqCenter, sqDims, sqCurvature, eta, w);
 
             geometry_msgs::msg::Point p3;
             eta = etamin + (i-1) * deta;
             w = wmin + ((j+1)-1) * dw;            
-            p3.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-            p3.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-            p3.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+            superquadricHelper(p3, sqCenter, sqDims, sqCurvature, eta, w);
 
             geometry_msgs::msg::Point p4;
             eta = etamin + ((i+1)-1) * deta;
             w = wmin + ((j+1)-1) * dw;            
-            p4.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-            p4.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-            p4.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);    
+            superquadricHelper(p4, sqCenter, sqDims, sqCurvature, eta, w);
 
             marker.points.push_back(p3);
             marker.points.push_back(p2);
@@ -380,30 +384,22 @@ void ReachabilityAnalyzer::visualize3DSuperquadric(const int & legIdx,
     geometry_msgs::msg::Point p1;
     double eta = etamin + n * deta;
     double w   = wmin + n * dw;            
-    p1.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-    p1.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-    p1.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    superquadricHelper(p1, sqCenter, sqDims, sqCurvature, eta, w);
 
     geometry_msgs::msg::Point p2;
     eta = etamin + (0.0) * deta;
     w = wmin + n * dw;            
-    p2.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-    p2.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-    p2.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    superquadricHelper(p2, sqCenter, sqDims, sqCurvature, eta, w);
 
     geometry_msgs::msg::Point p3;
     eta = etamin + n * deta;
     w = wmin + (0.0) * dw;            
-    p3.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-    p3.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-    p3.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);
+    superquadricHelper(p3, sqCenter, sqDims, sqCurvature, eta, w);
 
     geometry_msgs::msg::Point p4;
     eta = etamin + (0.0) * deta;
     w = wmin + (0.0) * dw;            
-    p4.x = sqCenter[0] + sqDims[0] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[0]) * sign(std::cos(w)) * std::pow(std::abs(std::cos(w)), 2.0 / sqCurvature[0]);
-    p4.y = sqCenter[1] + sqDims[1] * sign(std::cos(eta)) * std::pow(std::abs(std::cos(eta)), 2.0 / sqCurvature[1]) * sign(sin(w)) * std::pow(std::abs(sin(w)), 2.0 / sqCurvature[1]);
-    p4.z = sqCenter[2] + sqDims[2] * sign(sin(eta)) * std::pow(std::abs(sin(eta)), 2.0 / sqCurvature[2]);    
+    superquadricHelper(p4, sqCenter, sqDims, sqCurvature, eta, w);
 
     marker.points.push_back(p3);
     marker.points.push_back(p2);
