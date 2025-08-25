@@ -28,18 +28,37 @@ ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
     feetColorMap_ = {ocs2::Color::blue, ocs2::Color::orange, ocs2::Color::yellow, ocs2::Color::purple};  // Colors for markers per feet
 
 
-    node->declare_parameter("sqDimX", sqDimX);
-    node->declare_parameter("sqDimY", sqDimY);
-    node->declare_parameter("sqDimZ", sqDimZ);
-    node->declare_parameter("sqCurvX", sqCurvX);
-    node->declare_parameter("sqCurvY", sqCurvY);
-    node->declare_parameter("sqCurvZ", sqCurvZ);
-    node->declare_parameter("x_offset", x_offset);
-    node->declare_parameter("y_offset", y_offset);
-    node->declare_parameter("z_offset", z_offset);
-    node->declare_parameter("roll", roll);
-    node->declare_parameter("pitch", pitch);
-    node->declare_parameter("yaw", yaw);
+    node->declare_parameter("sqDimX_front", sqDimX_front);
+    node->declare_parameter("sqDimY_front", sqDimY_front);
+    node->declare_parameter("sqDimZ_front", sqDimZ_front);
+
+    node->declare_parameter("sqCurvX_front", sqCurvX_front);
+    node->declare_parameter("sqCurvY_front", sqCurvY_front);
+    node->declare_parameter("sqCurvZ_front", sqCurvZ_front);
+
+    node->declare_parameter("x_offset_front", x_offset_front);
+    node->declare_parameter("y_offset_front", y_offset_front);
+    node->declare_parameter("z_offset_front", z_offset_front);
+
+    node->declare_parameter("roll_front", roll_front);
+    node->declare_parameter("pitch_front", pitch_front);
+    node->declare_parameter("yaw_front", yaw_front);
+
+    node->declare_parameter("sqDimX_back", sqDimX_back);
+    node->declare_parameter("sqDimY_back", sqDimY_back);
+    node->declare_parameter("sqDimZ_back", sqDimZ_back);
+
+    node->declare_parameter("sqCurvX_back", sqCurvX_back);
+    node->declare_parameter("sqCurvY_back", sqCurvY_back);
+    node->declare_parameter("sqCurvZ_back", sqCurvZ_back);
+
+    node->declare_parameter("x_offset_back", x_offset_back);
+    node->declare_parameter("y_offset_back", y_offset_back);
+    node->declare_parameter("z_offset_back", z_offset_back);
+
+    node->declare_parameter("roll_back", roll_back);
+    node->declare_parameter("pitch_back", pitch_back);
+    node->declare_parameter("yaw_back", yaw_back);
 
     // node->get_parameter("sqDimX", sqDimX);
     // node->get_parameter("sqDimY", sqDimY);
@@ -65,42 +84,78 @@ rcl_interfaces::msg::SetParametersResult ReachabilityAnalyzer::parametersCallbac
     result.reason = "success";
     for (const auto &param: parameters)
     {
-        if (param.get_name() == "sqDimX")
+        if (param.get_name() == "sqDimX_front")
         {
-            sqDimX = param.get_value<double>();
-        } else if (param.get_name() == "sqDimY")
+            sqDimX_front = param.get_value<double>();
+        } else if (param.get_name() == "sqDimY_front")
         {
-            sqDimY = param.get_value<double>();
-        } else if (param.get_name() == "sqDimZ")
+            sqDimY_front = param.get_value<double>();
+        } else if (param.get_name() == "sqDimZ_front")
         {
-            sqDimZ = param.get_value<double>();
-        } else if (param.get_name() == "sqCurvX")
+            sqDimZ_front = param.get_value<double>();
+        } else if (param.get_name() == "sqCurvX_front")
         {
-            sqCurvX = param.get_value<double>();
-        } else if (param.get_name() == "sqCurvY")
+            sqCurvX_front = param.get_value<double>();
+        } else if (param.get_name() == "sqCurvY_front")
         {
-            sqCurvY = param.get_value<double>();
-        } else if (param.get_name() == "sqCurvZ")
+            sqCurvY_front = param.get_value<double>();
+        } else if (param.get_name() == "sqCurvZ_front")
         {
-            sqCurvZ = param.get_value<double>();
-        } else if (param.get_name() == "x_offset")
+            sqCurvZ_front = param.get_value<double>();
+        } else if (param.get_name() == "x_offset_front")
         {
-            x_offset = param.get_value<double>();
-        } else if (param.get_name() == "y_offset")
+            x_offset_front = param.get_value<double>();
+        } else if (param.get_name() == "y_offset_front")
         {
-            y_offset = param.get_value<double>();
-        } else if (param.get_name() == "z_offset")
+            y_offset_front = param.get_value<double>();
+        } else if (param.get_name() == "z_offset_front")
         {
-            z_offset = param.get_value<double>();
-        } else if (param.get_name() == "roll")
+            z_offset_front = param.get_value<double>();
+        } else if (param.get_name() == "roll_front")
         {
-            roll = param.get_value<double>();
-        } else if (param.get_name() == "pitch")
+            roll_front = param.get_value<double>();
+        } else if (param.get_name() == "pitch_front")
         {
-            pitch = param.get_value<double>();
-        } else if (param.get_name() == "yaw")
+            pitch_front = param.get_value<double>();
+        } else if (param.get_name() == "yaw_front")
         {
-            yaw = param.get_value<double>();
+            yaw_front = param.get_value<double>();
+        } else if (param.get_name() == "sqDimX_back")
+        {
+            sqDimX_back = param.get_value<double>();
+        } else if (param.get_name() == "sqDimY_back")
+        {
+            sqDimY_back = param.get_value<double>();
+        } else if (param.get_name() == "sqDimZ_back")
+        {
+            sqDimZ_back = param.get_value<double>();
+        } else if (param.get_name() == "sqCurvX_back")
+        {
+            sqCurvX_back = param.get_value<double>();
+        } else if (param.get_name() == "sqCurvY_back")
+        {
+            sqCurvY_back = param.get_value<double>();
+        } else if (param.get_name() == "sqCurvZ_back")
+        {
+            sqCurvZ_back = param.get_value<double>();
+        } else if (param.get_name() == "x_offset_back")
+        {
+            x_offset_back = param.get_value<double>();
+        } else if (param.get_name() == "y_offset_back")
+        {
+            y_offset_back = param.get_value<double>();
+        } else if (param.get_name() == "z_offset_back")
+        {
+            z_offset_back = param.get_value<double>();
+        } else if (param.get_name() == "roll_back")
+        {
+            roll_back = param.get_value<double>();
+        } else if (param.get_name() == "pitch_back")
+        {
+            pitch_back = param.get_value<double>();
+        } else if (param.get_name() == "yaw_back")
+        {
+            yaw_back = param.get_value<double>();
         }
     }
  
@@ -112,6 +167,9 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     // RCLCPP_INFO_STREAM(node_->get_logger(), "[runReachabilityAnalysis()]");
     // int num_projections = 1000;
 
+    if (marker_counter > 5000)
+        marker_counter = 0; // reset marker counter to avoid overflow
+
     // const auto& model = interface.getPinocchioInterface().getModel();
     // auto& data = interface.getPinocchioInterface().getData();
 
@@ -120,6 +178,18 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
 
     Eigen::Vector3d torso_pose(0.0, 0.0, 0.0);
     Eigen::VectorXd defaultState = interface_->getInitialState();
+
+    Eigen::VectorXd lowerJointLimits(12);
+    lowerJointLimits << -0.50, 0.35, -1.95,
+                        -0.50, 0.35, -1.95,
+                        -0.50, 0.35, -1.95,
+                        -0.50, 0.35, -1.95;
+
+    Eigen::VectorXd upperJointLimits(12);
+    upperJointLimits << 0.50, 1.0, -1.0, 
+                        0.50, 1.0, -1.0, 
+                        0.50, 1.0, -1.0, 
+                        0.50, 1.0, -1.0;
 
     // set torso pose
     q[0] = torso_pose[0]; 
@@ -134,20 +204,19 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
         // std::cout << "projection " << i << std::endl;
 
     // set joint poses
-    for (int j = 6; j < CONFIG_DIM; j++)
+    double min_posn = -1.0;
+    double max_posn = -1.0;
+    for (int j = 0; j < JOINT_DIM; j++)
     {
-        double min_posn = -1.0;
-        double max_posn = -1.0;
-
         // if (volumeFlag == "full")
         // {
-        min_posn = interface_->modelSettings().lowerJointLimits_[j];
-        max_posn = interface_->modelSettings().upperJointLimits_[j];
+        min_posn = interface_->modelSettings().lowerJointLimits_[j]; // lowerJointLimits[j]; //    
+        max_posn = interface_->modelSettings().upperJointLimits_[j]; // upperJointLimits[j]; // 
 
         std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
 
         // randomly sample with limits
-        q[j] = joint_distribution(generator);            
+        q[6 + j] = joint_distribution(generator);            
     }    
 
 
@@ -281,28 +350,36 @@ void ReachabilityAnalyzer::visualize3DSuperquadric(const int & legIdx,
     // std::cout << "                                          pitch: " << pitch << std::endl;
     // std::cout << "                                          roll: " << roll << std::endl;
     
-    Eigen::Vector3d sqDims(sqDimX, sqDimY, sqDimZ);
-    Eigen::Vector3d sqCurvature(sqCurvX, sqCurvY, sqCurvZ);
+    Eigen::Vector3d sqDims; // (sqDimX, sqDimY, sqDimZ);
+    Eigen::Vector3d sqCurvature; // (sqCurvX, sqCurvY, sqCurvZ);
 
     Eigen::Vector3d sqCenter;
     Eigen::Vector3d sqOrientation;
     if (legIdx == FL)
     {
-        sqCenter << x_offset, y_offset, z_offset;
-        sqOrientation << roll, pitch, yaw;
+        sqDims << sqDimX_front, sqDimY_front, sqDimZ_front;
+        sqCurvature << sqCurvX_front, sqCurvY_front, sqCurvZ_front;
+        sqCenter << x_offset_front, y_offset_front, z_offset_front;
+        sqOrientation << roll_front, pitch_front, yaw_front;
     } else if (legIdx == FR)
     {
-        sqCenter << x_offset, -y_offset, z_offset;
-        sqOrientation << -roll, pitch, yaw;        
+        sqDims << sqDimX_front, sqDimY_front, sqDimZ_front;
+        sqCurvature << sqCurvX_front, sqCurvY_front, sqCurvZ_front;
+        sqCenter << x_offset_front, -y_offset_front, z_offset_front;
+        sqOrientation << -roll_front, pitch_front, yaw_front;
     } else if (legIdx == BL)
     {
-        sqCenter << -x_offset, y_offset, z_offset;
-        sqOrientation << roll, -pitch, yaw;
+        sqDims << sqDimX_back, sqDimY_back, sqDimZ_back;
+        sqCurvature << sqCurvX_back, sqCurvY_back, sqCurvZ_back;
+        sqCenter << x_offset_back, y_offset_back, z_offset_back;
+        sqOrientation << roll_back, pitch_back, yaw_back;
     } else if (legIdx == BR)
     {
-        sqCenter << -x_offset, -y_offset, z_offset;
-        sqOrientation << -roll, -pitch, yaw;
-    } else    
+        sqDims << sqDimX_back, sqDimY_back, sqDimZ_back;
+        sqCurvature << sqCurvX_back, sqCurvY_back, sqCurvZ_back;
+        sqCenter << x_offset_back, -y_offset_back, z_offset_back;
+        sqOrientation << -roll_back, pitch_back, yaw_back;
+    } else
     {
         throw std::invalid_argument("Invalid leg index.");
     }

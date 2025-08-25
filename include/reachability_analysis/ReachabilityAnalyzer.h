@@ -30,6 +30,8 @@
 // namespace quadruped {
 
 static constexpr size_t CONFIG_DIM = 18;
+static constexpr size_t JOINT_DIM = 12;
+
 enum LegIndex {FL = 0, FR = 1, BL = 2, BR = 3}; /**< Enum for leg indices */
 
 class ReachabilityAnalyzer
@@ -55,23 +57,40 @@ private:
 
     rclcpp::Node::SharedPtr node_;
 
-    double sqDimX = 0.40;
-    double sqDimY = 0.35;
-    double sqDimZ = 0.2125;
+    // front set
+    double sqDimX_front = 0.40;
+    double sqDimY_front = 0.35;
+    double sqDimZ_front = 0.2125;
 
-    double sqCurvX = 1.5;
-    double sqCurvY = 2.0;
-    double sqCurvZ = 2.0;
+    double sqCurvX_front = 1.5;
+    double sqCurvY_front = 2.0;
+    double sqCurvZ_front = 2.0;
 
-    double x_offset = 0.20;
-    // double x_offset_back = -0.20;
-    double y_offset = 0.025;
-    double z_offset = -0.25;
+    double x_offset_front = 0.20;
+    double y_offset_front = 0.025;
+    double z_offset_front = -0.25;
 
-    double roll = 0.30; // left/right
-    double pitch = 0.0; // front/back
-    double yaw = 0.0; // ??   
-    
+    double roll_front = 0.30; // left/right
+    double pitch_front = 0.0; // front/back
+    double yaw_front = 0.0; // ??   
+
+    // back set
+    double sqDimX_back = 0.40;
+    double sqDimY_back = 0.35;
+    double sqDimZ_back = 0.2125;
+
+    double sqCurvX_back = 1.5;
+    double sqCurvY_back = 2.0;
+    double sqCurvZ_back = 2.0;
+
+    double x_offset_back = -0.20;
+    double y_offset_back = -0.025;
+    double z_offset_back = -0.25;
+
+    double roll_back = 0.30; // left/right
+    double pitch_back = 0.0; // front/back
+    double yaw_back = 0.0; // ??   
+
     // Callback handle for parameter changes
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr callback_handle_;    
 

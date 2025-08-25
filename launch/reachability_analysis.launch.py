@@ -25,6 +25,7 @@ def generate_launch_description():
     go2_description_path = get_package_share_directory("go2_description")
     go2_interface_path = get_package_share_directory("go2_interface")
     mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
+    reachability_analysis_path = get_package_share_directory("reachability_analysis")
 
     ####################
     # Launch Arguments #
@@ -71,7 +72,7 @@ def generate_launch_description():
         arguments=[
             "-d",
             os.path.join(
-                go2_interface_path, "rviz", "reachability.rviz",
+                reachability_analysis_path, "rviz", "reachability.rviz",
             )
         ],
         parameters=[
