@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(dependencies
   rclcpp
   ocs2_ros_interfaces
-  ocs2_go2_mpc
+  ocs2_anymal_mpc
   ocs2_robotic_tools
 )
 
@@ -85,7 +85,7 @@ install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 
-install(DIRECTORY launch rviz
+install(DIRECTORY config launch rviz
   DESTINATION share/${PROJECT_NAME}/
 )
 

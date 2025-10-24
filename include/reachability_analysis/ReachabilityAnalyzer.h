@@ -6,14 +6,14 @@
 #include <random>
 
 // #include <ocs2_quadruped/LeggedRobotInterface.h>
-#include <ocs2_custom_quadruped_interface/CustomQuadrupedVisualizer.h>
+#include <ocs2_quadruped_interface/QuadrupedVisualizer.h>
 // #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <ocs2_ros_interfaces/visualization/VisualizationHelpers.h>
 
-#include <ocs2_custom_quadruped_interface/CustomQuadrupedInterface.h>
+#include <ocs2_quadruped_interface/QuadrupedInterface.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -38,8 +38,8 @@ class ReachabilityAnalyzer
 {
 public:
     ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
-                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface,
-                            std::shared_ptr<switched_model::CustomQuadrupedVisualizer> & visualizer);
+                            std::shared_ptr<switched_model::QuadrupedInterface> & interface,
+                            std::shared_ptr<switched_model::QuadrupedVisualizer> & visualizer);
 
     void runReachabilityAnalysis(const rclcpp::Time & timeStamp);
 
@@ -52,8 +52,8 @@ private:
     void visualize3DSuperquadric(const int & legIdx,
                                     const Eigen::Vector3d & p_torso);                            
 
-    std::shared_ptr<switched_model::CustomQuadrupedInterface> interface_; /**< Go2 interface */
-    std::shared_ptr<switched_model::CustomQuadrupedVisualizer> visualizer_; /**< Go2 visualizer */
+    std::shared_ptr<switched_model::QuadrupedInterface> interface_; /**< Anymal interface */
+    std::shared_ptr<switched_model::QuadrupedVisualizer> visualizer_; /**< Anymal visualizer */
 
     rclcpp::Node::SharedPtr node_;
 

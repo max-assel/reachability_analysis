@@ -9,8 +9,8 @@
 #include <reachability_analysis/ReachabilityAnalyzer.h>
 
 ReachabilityAnalyzer::ReachabilityAnalyzer(const rclcpp::Node::SharedPtr& node,
-                                            std::shared_ptr<switched_model::CustomQuadrupedInterface> & interface,
-                                            std::shared_ptr<switched_model::CustomQuadrupedVisualizer> & visualizer)
+                                            std::shared_ptr<switched_model::QuadrupedInterface> & interface,
+                                            std::shared_ptr<switched_model::QuadrupedVisualizer> & visualizer)
 {
     node_ = node;
     interface_ = interface;

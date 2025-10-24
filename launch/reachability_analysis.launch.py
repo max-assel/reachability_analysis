@@ -22,17 +22,17 @@ def generate_launch_description():
     # Package Directories #
     #######################
 
-    go2_description_path = get_package_share_directory("go2_description")
-    go2_interface_path = get_package_share_directory("go2_interface")
-    mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
+    anymal_description_path = get_package_share_directory("anymal_description")
+    # go2_interface_path = get_package_share_directory("go2_interface")
+    # mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
     reachability_analysis_path = get_package_share_directory("reachability_analysis")
 
     ####################
     # Launch Arguments #
     ####################
-    urdfFile = os.path.join(go2_description_path, "urdf/go2_simplified.urdf")
-    taskFile = os.path.join(mmp_quadruped_path, "config/mpc/task.info")
-    frameFile = os.path.join(go2_interface_path, "config/frame_declaration.info")
+    urdfFile = os.path.join(anymal_description_path, "urdf/anymal/anymal.urdf")
+    taskFile = os.path.join(reachability_analysis_path, "config/task.info")
+    frameFile = os.path.join(reachability_analysis_path, "config/frame_declaration.info")
 
     declare_description_name = DeclareLaunchArgument(
             "description_name",

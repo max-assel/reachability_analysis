@@ -8,8 +8,8 @@
 
 #include <ocs2_mpc/MPC_Settings.h>
 
-#include <ocs2_go2_mpc/Go2Interface.h>
-#include <ocs2_custom_quadruped_interface/CustomQuadrupedVisualizer.h>
+#include <ocs2_anymal_mpc/AnymalInterface.h>
+#include <ocs2_quadruped_interface/QuadrupedVisualizer.h>
 
 #include <reachability_analysis/ReachabilityAnalyzer.h>
 
@@ -18,11 +18,11 @@
 
 int main(int argc, char** argv) 
 {
-    const std::string robotName = "go2";
+    const std::string robotName = "anymal";
 
     // Initialize ros node
     rclcpp::init(argc, argv);
-    rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("go2_reachability_analysis",
+    rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("anymal_reachability_analysis",
                                                                 rclcpp::NodeOptions()
                                                                 .allow_undeclared_parameters(true)
                                                                 .automatically_declare_parameters_from_overrides(true));
@@ -37,20 +37,20 @@ int main(int argc, char** argv)
     // nodeHandle.getParam("/volumeFlag", volumeFlag);
 
     // Robot interface
-    std::string urdfString = go2::getUrdfString(urdfFile);
-    auto go2Interface = go2::getGo2Interface(urdfString, taskFile, frameFile); // , envFile
+    std::string urdfString = anymal::getUrdfString(urdfFile);
+    auto anymalInterface = anymal::getAnymalInterface(urdfString, taskFile, frameFile); // , envFile
     ocs2::mpc::Settings mpcSettings = ocs2::mpc::loadSettings(taskFile); // new
 
     // MRT
     ocs2::MRT_ROS_Interface mrt(robotName);
-    mrt.initRollout(&go2Interface->getRollout());
+    mrt.initRollout(&anymalInterface->getRollout());
     mrt.launchNodes(node);
 
     // Visualization
-    auto visualizer = std::make_shared<switched_model::CustomQuadrupedVisualizer>(go2Interface->getKinematicModel(), 
-                                                                                    go2Interface->getJointNames(), 
-                                                                                    go2Interface->getBaseName(), 
-                                                                                    node);
+    auto visualizer = std::make_shared<switched_model::QuadrupedVisualizer>(anymalInterface->getKinematicModel(), 
+                                                                            anymalInterface->getJointNames(), 
+                                                                            anymalInterface->getBaseName(), 
+                                                                            node);
 
 
     // Dummy legged robot
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
                                                         mpcSettings.mpcDesiredFrequency_);
     leggedRobotDummySimulator.subscribeObservers({visualizer});
 
-    ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, go2Interface, visualizer);
+    ReachabilityAnalyzer * reachabilityAnalyzer = new ReachabilityAnalyzer(node, anymalInterface, visualizer);
 
 
     rclcpp::Rate rate(100);
