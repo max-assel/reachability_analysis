@@ -167,7 +167,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     // RCLCPP_INFO_STREAM(node_->get_logger(), "[runReachabilityAnalysis()]");
     // int num_projections = 1000;
 
-    if (marker_counter > 5000)
+    if (marker_counter > 15000)
         marker_counter = 0; // reset marker counter to avoid overflow
 
     // const auto& model = interface.getPinocchioInterface().getModel();
@@ -179,17 +179,19 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     Eigen::Vector3d torso_pose(0.0, 0.0, 0.0);
     Eigen::VectorXd defaultState = interface_->getInitialState();
 
+    // Eigen::VectorXd lowerJointLimits = interface_->modelSettings().lowerJointLimits_;
     Eigen::VectorXd lowerJointLimits(12);
-    lowerJointLimits << -0.50, 0.35, -1.95,
-                        -0.50, 0.35, -1.95,
-                        -0.50, 0.35, -1.95,
-                        -0.50, 0.35, -1.95;
+    lowerJointLimits << -0.50, -1.57, -2.70,
+                        -0.50, -1.57, -2.70,
+                        -0.50, -1.57, -2.70,
+                        -0.50, -1.57, -2.70;
 
+    // Eigen::VectorXd upperJointLimits = interface_->modelSettings().upperJointLimits_;
     Eigen::VectorXd upperJointLimits(12);
-    upperJointLimits << 0.50, 1.0, -1.0, 
-                        0.50, 1.0, -1.0, 
-                        0.50, 1.0, -1.0, 
-                        0.50, 1.0, -1.0;
+    upperJointLimits << 0.50, 1.57, 0.0, 
+                        0.50, 1.57, 0.0, 
+                        0.50, 1.57, 0.0, 
+                        0.50, 1.57, 0.0;
 
     // set torso pose
     q[0] = torso_pose[0]; 
@@ -210,8 +212,8 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     {
         // if (volumeFlag == "full")
         // {
-        min_posn = interface_->modelSettings().lowerJointLimits_[j]; // lowerJointLimits[j]; //    
-        max_posn = interface_->modelSettings().upperJointLimits_[j]; // upperJointLimits[j]; // 
+        min_posn = lowerJointLimits[j]; // interface_->modelSettings().lowerJointLimits_[j]; // 
+        max_posn = upperJointLimits[j]; // interface_->modelSettings().upperJointLimits_[j]; // 
 
         std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
 
