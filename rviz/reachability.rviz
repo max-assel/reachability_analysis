@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
+        - /RobotModel1/Status1
         - /Superquadrics1
         - /Point clouds1
       Splitter Ratio: 0.5
@@ -473,7 +474,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            superquadric: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -529,7 +530,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            projections: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -542,7 +543,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            projections: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -555,7 +556,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            projections: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -568,7 +569,7 @@ Visualization Manager:
           Enabled: true
           Name: Marker
           Namespaces:
-            projections: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -582,7 +583,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: odom
+    Fixed Frame: base
     Frame Rate: 30
   Name: root
   Tools:
@@ -640,10 +641,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.11499949544668198
+      Pitch: 0.19499944150447845
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.35184070467948914
+      Yaw: 0.07684075087308884
     Saved: ~
 Window Geometry:
   Displays:

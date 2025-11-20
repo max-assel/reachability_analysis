@@ -200,26 +200,27 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     q[3] = 0.0; 
     q[4] = 0.0; 
     q[5] = 0.0;
+    q.segment(6, 12) = defaultState.segment(12, 12); // use default joint configuration
 
     // for (int i = 0; i < num_projections; i++)
     // {
         // std::cout << "projection " << i << std::endl;
 
     // set joint poses
-    double min_posn = -1.0;
-    double max_posn = -1.0;
-    for (int j = 0; j < JOINT_DIM; j++)
-    {
-        // if (volumeFlag == "full")
-        // {
-        min_posn = lowerJointLimits[j]; // interface_->modelSettings().lowerJointLimits_[j]; // 
-        max_posn = upperJointLimits[j]; // interface_->modelSettings().upperJointLimits_[j]; // 
+    // double min_posn = -1.0;
+    // double max_posn = -1.0;
+    // for (int j = 0; j < JOINT_DIM; j++)
+    // {
+    //     // if (volumeFlag == "full")
+    //     // {
+    //     min_posn = lowerJointLimits[j]; // interface_->modelSettings().lowerJointLimits_[j]; // 
+    //     max_posn = upperJointLimits[j]; // interface_->modelSettings().upperJointLimits_[j]; // 
 
-        std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+    //     std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
 
-        // randomly sample with limits
-        q[6 + j] = joint_distribution(generator);            
-    }    
+    //     // randomly sample with limits
+    //     q[6 + j] = joint_distribution(generator);            
+    // }    
 
 
     publishEEPositions(q);       
