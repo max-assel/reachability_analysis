@@ -23,7 +23,8 @@ def generate_launch_description():
     #######################
 
     anymal_description_path = get_package_share_directory("anymal_description")
-    # go2_interface_path = get_package_share_directory("go2_interface")
+    # go2_description_path = get_package_share_directory("go2_description")
+    
     # mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
     reachability_analysis_path = get_package_share_directory("reachability_analysis")
 
@@ -31,6 +32,8 @@ def generate_launch_description():
     # Launch Arguments #
     ####################
     urdfFile = os.path.join(anymal_description_path, "urdf/anymal.urdf")
+    # urdfFile = os.path.join(go2_description_path, "urdf/go2_description.urdf")
+
     taskFile = os.path.join(reachability_analysis_path, "config/task.info")
     frameFile = os.path.join(reachability_analysis_path, "config/frame_declaration.info")
 
@@ -105,20 +108,35 @@ def generate_launch_description():
         output="screen"
     )
 
-    reachability_analysis_node = launch_ros.actions.Node(
-        package="reachability_analysis",
-        executable="legged_robot_reachability_analysis",
-        name="legged_robot_reachability_analysis",
-        output="screen",
-        parameters=[
-            {
-                "use_sim_time": True,
-                'taskFile': taskFile,
-                'frameFile': frameFile,
-                'urdfFile': urdfFile,
-            }
-        ]
-    )
+    # reachability_analysis_node = launch_ros.actions.Node(
+    #     package="reachability_analysis",
+    #     executable="legged_robot_reachability_analysis",
+    #     name="legged_robot_reachability_analysis",
+    #     output="screen",
+    #     parameters=[
+    #         {
+    #             "use_sim_time": True,
+    #             'taskFile': taskFile,
+    #             'frameFile': frameFile,
+    #             'urdfFile': urdfFile,
+    #         }
+    #     ]
+    # )
+
+    joint_state_publisher_gui_node = launch_ros.actions.Node(
+                    package='joint_state_publisher_gui',
+                    executable='joint_state_publisher_gui',
+                    name='joint_state_publisher',
+                    output='screen',
+                    parameters=[
+                        {
+                            'use_gui': True
+                        },
+                        {
+                            'rate': 100.0
+                        }
+                    ]
+                ) 
 
     decl_sim_time = launch_ros.actions.SetParameter(name='use_sim_time', value=True)
 
@@ -133,6 +151,7 @@ def generate_launch_description():
                 robot_state_publisher_node, 
                 rqt_node,
                 rviz_node,
-                reachability_analysis_node,
+                # reachability_analysis_node,
+                joint_state_publisher_gui_node
             ]
     )

@@ -167,7 +167,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     // RCLCPP_INFO_STREAM(node_->get_logger(), "[runReachabilityAnalysis()]");
     // int num_projections = 1000;
 
-    if (marker_counter > 15000)
+    if (marker_counter > 50000)
         marker_counter = 0; // reset marker counter to avoid overflow
 
     // const auto& model = interface.getPinocchioInterface().getModel();
@@ -179,19 +179,19 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     Eigen::Vector3d torso_pose(0.0, 0.0, 0.0);
     Eigen::VectorXd defaultState = interface_->getInitialState();
 
-    // Eigen::VectorXd lowerJointLimits = interface_->modelSettings().lowerJointLimits_;
-    Eigen::VectorXd lowerJointLimits(12);
-    lowerJointLimits << -0.50, -1.57, -2.70,
-                        -0.50, -1.57, -2.70,
-                        -0.50, -1.57, -2.70,
-                        -0.50, -1.57, -2.70;
+    Eigen::VectorXd lowerJointLimits = interface_->modelSettings().lowerJointLimits_;
+    // Eigen::VectorXd lowerJointLimits(12);
+    // lowerJointLimits << -0.50, -1.57, -2.70,
+                        // -0.50, -1.57, -2.70,
+                        // -0.50, -1.57, -2.70,
+                        // -0.50, -1.57, -2.70;
 
-    // Eigen::VectorXd upperJointLimits = interface_->modelSettings().upperJointLimits_;
-    Eigen::VectorXd upperJointLimits(12);
-    upperJointLimits << 0.50, 1.57, 0.0, 
-                        0.50, 1.57, 0.0, 
-                        0.50, 1.57, 0.0, 
-                        0.50, 1.57, 0.0;
+    Eigen::VectorXd upperJointLimits = interface_->modelSettings().upperJointLimits_;
+    // Eigen::VectorXd upperJointLimits(12);
+    // upperJointLimits << 0.50, 1.57, 0.0, 
+                        // 0.50, 1.57, 0.0, 
+                        // 0.50, 1.57, 0.0, 
+                        // 0.50, 1.57, 0.0;
 
     // set torso pose
     q[0] = torso_pose[0]; 
@@ -202,25 +202,21 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     q[5] = 0.0;
     q.segment(6, 12) = defaultState.segment(12, 12); // use default joint configuration
 
-    // for (int i = 0; i < num_projections; i++)
-    // {
-        // std::cout << "projection " << i << std::endl;
-
     // set joint poses
-    // double min_posn = -1.0;
-    // double max_posn = -1.0;
-    // for (int j = 0; j < JOINT_DIM; j++)
-    // {
-    //     // if (volumeFlag == "full")
-    //     // {
-    //     min_posn = lowerJointLimits[j]; // interface_->modelSettings().lowerJointLimits_[j]; // 
-    //     max_posn = upperJointLimits[j]; // interface_->modelSettings().upperJointLimits_[j]; // 
+    double min_posn = -1.0;
+    double max_posn = -1.0;
+    for (int j = 0; j < JOINT_DIM; j++)
+    {
+        // if (volumeFlag == "full")
+        // {
+        min_posn = lowerJointLimits[j]; // interface_->modelSettings().lowerJointLimits_[j]; // 
+        max_posn = upperJointLimits[j]; // interface_->modelSettings().upperJointLimits_[j]; // 
 
-    //     std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
+        std::uniform_real_distribution<double> joint_distribution(min_posn, max_posn);
 
-    //     // randomly sample with limits
-    //     q[6 + j] = joint_distribution(generator);            
-    // }    
+        // randomly sample with limits
+        q[6 + j] = joint_distribution(generator);            
+    }    
 
 
     publishEEPositions(q);       
