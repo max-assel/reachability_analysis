@@ -22,7 +22,6 @@ def generate_launch_description():
     # Package Directories #
     #######################
 
-    # anymal_description_path = get_package_share_directory("anymal_description")
     go2_description_path = get_package_share_directory("go2_description")
     
     # mmp_quadruped_path = get_package_share_directory("mmp_quadruped")
@@ -31,7 +30,6 @@ def generate_launch_description():
     ####################
     # Launch Arguments #
     ####################
-    # urdfFile = os.path.join(anymal_description_path, "urdf/anymal.urdf")
     urdfFile = os.path.join(go2_description_path, "urdf/go2_description.urdf")
 
     taskFile = os.path.join(reachability_analysis_path, "config/task.info")
