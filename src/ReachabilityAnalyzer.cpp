@@ -236,8 +236,12 @@ void ReachabilityAnalyzer::publishState(const Eigen::VectorXd & q, const rclcpp:
 
     double real_time_factor = 0.1;
 
+    Eigen::VectorXd defaultState = interface_->getInitialState();
+
+    defaultState.head(6) = Eigen::VectorXd::Zero(6); // zero torso pose
+
     ocs2::SystemObservation sol;
-    sol.state = x;
+    sol.state = defaultState;
     sol.input = Eigen::VectorXd::Zero(q.size());
     // rclcpp::Time timeStamp = node_->get_clock()->now();
 
