@@ -167,7 +167,7 @@ void ReachabilityAnalyzer::runReachabilityAnalysis(const rclcpp::Time & timeStam
     // RCLCPP_INFO_STREAM(node_->get_logger(), "[runReachabilityAnalysis()]");
     // int num_projections = 1000;
 
-    if (marker_counter > 50000)
+    if (marker_counter > 5000)
         marker_counter = 0; // reset marker counter to avoid overflow
 
     // const auto& model = interface.getPinocchioInterface().getModel();
